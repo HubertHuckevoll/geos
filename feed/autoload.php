@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * Auto loader
+ * ________________________________________________________________
+ */
+spl_autoload_register(function($className)
+{
+  $fname = null;
+  $ct = substr($className, -1);
+
+  switch($ct)
+  {
+    case 'V':
+
+      if ($className == 'loginV')
+      {
+        $fname = './view/'.$className.'.php';
+      }
+      else
+      {
+        $parts = explode("\\", $className);
+        $ui = $parts[0];      // ui version
+        $view = $parts[1];    // view
+
+        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/view/'.$ui.'/'.$view.'.php';
+      }
+
+    break;
+
+    case 'M':
+      $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/model/'.$className.'.php';
+
+      if (!file_exists($fname))
+      {
+        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/lib/'.$className.'.php';
+      }
+    break;
+  }
+
+  if (file_exists($fname))
+  {
+    require_once($fname);
+  }
+  else
+  {
+    die('Couldn\'t autoload class "'.$className.'" from "'.$fname.'"');
+  }
+
+
+});
+
+?>

@@ -1,0 +1,40 @@
+<?php
+
+namespace html2V;
+
+class feedsForCatV extends html2V
+{
+
+  /**
+   * Services
+   * _________________________________________________________________
+   */
+  public function renderMainContent()
+  {
+    $tableIdx = $this->getData('tableIdx');
+    $feeds = $this->getData('services');
+    
+    $erg .= '<hr>';
+    $erg .= $this->link(array('hook' => 'index'), 'Categories');
+    $erg .= '&nbsp;&gt;&nbsp;';
+    $erg .= '<b>'.$this->getData('tableName').'</b>';
+    $erg .= '<hr>';
+
+    $erg .= '<ul>';
+    
+    for ($i = 0; $i < count($feeds); $i++)
+    {
+      $feed = $feeds[$i];
+      $erg .= '<li>'.$this->link(array('hook' => 'articlesForFeed',
+                                       'tableIdx' => $tableIdx,
+                                       'feedIdx' => $i),
+                                 $feed['service']).'</li>';
+    }
+    $erg .= '</ul>';
+    
+    return $erg;
+  }
+  
+}
+
+?>

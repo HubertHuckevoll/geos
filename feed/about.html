@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">
+  </head>
+  <body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">
+  <h1>&nbsp;feed<a href="index.php">.</a></h1>
+  <hr>
+  <h3>About</h3>
+  <p>
+    "feed" is a very basic RSS/ATOM feed viewer for your retro-computing
+    needs. Its aim is to bring modern content to vintage machines that
+    support only very basic web browsing (e.g. no SSL, JavaScript, CSS,
+    modern tags...). Therefore, it's intentionally kept very simple.
+  </p>
+  <h3>Features</h3>
+  <ul>
+    <li>
+      To support browsers with different capabilities, "feed" offers
+      multiple UIs, from dead simple to.... simple.
+    </li>
+    <li>
+      You can select how much use "feed" should make of images.
+    </li>
+    <li>
+      Original images (JPG, PNG) are color reduced, resized and
+      converted to GIF for greater compatibility.
+    </li>
+    <li>
+      "feed" tries to give you a preview of the content the RSS links to.
+      This algorithm is not perfect however, some (important) text
+      elements could be missing and some redundant elements could still be
+      in.
+    </li>
+  </ul>
+  <h3>Setup</h3>
+  <p>
+  Ironically, you will need a Google Account and Google Sheets in a modern
+  browser to bring this thing to life:
+  </p>
+  <ol>
+    <li>
+      Create a new Google Sheets document (type "sheets.new" into the
+      adress bar of your modern browser).
+    </li>
+    <li>
+      Name the current sheet (in the bottom row of sheets).
+    </li>
+    <li>
+      Create three columns with these names: <em>service</em>, <em>url</em>, <em>xpath</em>.
+    </li>
+    <li>
+      Add your RSS/ATOM feeds! The name of the feed goes into "service",
+      the URL for the feed in "url" (who would have guessed...). You
+      don't need to put anything in "xpath" but if you do, "feed" will
+      try to use the provided xpath to scrape the content from the articles.
+    </li>
+    <li>
+      By adding and naming more table sheets in the bottom bar, you can
+      categorize your feeds.
+    </li>
+    <li>
+      When you're done, in Google Sheets, go to "File" / "Publish to the
+      web". Publish the document and copy the link that's shown there.
+      Store the link in a way your retro machine can access it.
+    </li>
+    <li>
+      Open "feed" in your retro machine's web browser. Paste the link
+      from Google Sheet in the field "Google Sheet ID / URL".
+    </li>
+    <li>Select your choice of UI and options, hit "Go".</li>
+    <li>Happy retro surfing!</li>
+  </ol>
+  <h3>Tips</h3>
+  <ul>
+    <li>
+      All your settings are "stored" in the URL once you've clicked the
+      "Go" button. By setting a bookmark to the "Categories" page you
+      can retrieve them easily.
+    </li>
+    <li>
+      You can share your Google Sheet link with other people. By creating
+      several bookmarks with different sheets you can have multiple
+      collections of RSS feeds.
+    </li>
+    <li>
+      Using Google Docs you can also have multiple people
+      work on a feed collection.
+    </li>
+  </ul>
+  <h3>Contact</h3>
+  <p>
+    Created by MeyerK 2018ff. You can reach me
+    under konstantin.meyer at GMail.
+  </p>
+  </body>
+</html>
