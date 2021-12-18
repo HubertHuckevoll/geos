@@ -15,7 +15,7 @@ class framesetV extends \view
     $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">'.
               '<html>'.
               '<head>'.
-                '<title>'.$this->getData('appName').'/'.$this->getData('gsheetName').'</title>'.
+                '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').'</title>'.
                 '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'.
               '</head>'.
               '<frameset rows="11%,*" frameborder="0" border="0" framespacing="0">'.

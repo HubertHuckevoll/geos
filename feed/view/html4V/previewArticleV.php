@@ -13,12 +13,20 @@ class previewArticleV extends html4V
   {
     $article = $this->getData('article');
 
-    $erg = '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">'.
-              '<table border="0" width="95%" cellpadding="0" cellmargin="0">'. // the table is a hack for the GEOS Browser!
-              '<tr>'.
-              '<td>'.
-              '<font face="'.$this->getData('font').'">'.
-              '<h3>'.$this->getData('headline').'</h3>';
+    if ($this->getData('uim') == 'l')
+    { // light mode
+      $erg .= '<body bgcolor="#FFFFFF" text="#000000" link="#000080" vlink="#000080">';
+    }
+    else
+    { // dark mode
+      $erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#006699" vlink="#006699">';
+    }
+
+    //$erg = '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">'.
+    $erg .= '<tr>'.
+            '<td>'.
+            '<font face="'.$this->getData('font').'">'.
+            '<h3>'.$this->getData('headline').'</h3>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
     {

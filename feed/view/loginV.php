@@ -13,6 +13,9 @@ class loginV extends \view
     $h4sel = ($this->stateParams['ui'] == 'html4V') ? ' selected' : '';
     $h5sel = ($this->stateParams['ui'] == 'html5V') ? ' selected' : '';
 
+    $uimL = ($this->stateParams['uim'] == 'l') ? ' selected' : '';
+    $uimD = ($this->stateParams['uim'] == 'd') ? ' selected' : '';
+
     $imgUse0 = ($this->stateParams['iU'] == '0') ? ' selected' : '';
     $imgUse1 = ($this->stateParams['iU'] == '1') ? ' selected' : '';
     $imgUse2 = ($this->stateParams['iU'] == '2') ? ' selected' : '';
@@ -31,7 +34,8 @@ class loginV extends \view
                 '<input type="hidden" name="hook" value="index">'.
                 '&nbsp;'.
                 'Google Sheet ID / URL'.'&nbsp;-&nbsp;'.
-                '<input type="text" name="gsheet" value="'.$this->stateParams['gsheet'].'">'.
+                '<input type="text" name="tsv" value="'.$this->stateParams['tsv'].'">'.
+
                 '<br><br>'.
                 '&nbsp;'.
                 'UI'.'&nbsp;-&nbsp;'.
@@ -41,6 +45,15 @@ class loginV extends \view
                   '<option value="html4V"'.$h4sel.'>HTML 4 (frames, fonts, colors, tables)</option>'.
                   '<option value="html5V"'.$h5sel.'>HTML 5 (modern tags, CSS - using NEW.CSS)</option>'.
                 '</select>'.
+
+                '<br><br>'.
+                '&nbsp;'.
+                'UI Mode (only for HTML 3 and above)'.'&nbsp;-&nbsp;'.
+                '<select name="uim">'.
+                  '<option value="l"'.$uimL.'>Light Mode</option>'.
+                  '<option value="d"'.$uimD.'>Dark Mode</option>'.
+                '</select>'.
+
                 '<br><br>'.
                 '&nbsp;'.
                 'Image Use'.'&nbsp;-&nbsp;'.
@@ -50,7 +63,8 @@ class loginV extends \view
                   '<option value="2"'.$imgUse2.'>Medium</option>'.
                   '<option value="3"'.$imgUse3.'>Heavy</option>'.
                 '</select>'.
-                '<br><br>'.
+
+              '<br><br>'.
               '&nbsp;'.
               '<input type="submit" value="Go">'.
             '</form>';

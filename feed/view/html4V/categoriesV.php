@@ -14,7 +14,15 @@ class categoriesV extends html4V
     $feedTable = $this->data['categories']['sheets'];
     $erg = '';
 
-    $erg .= '<body bgcolor="#000080" text="#FFFFFF" link="#FFFFFF" vlink="FFFFFF">';
+    if ($this->getData('uim') == 'l')
+    { // light mode
+      $erg .= '<body bgcolor="#000080" text="#FFFFFF" link="#FFFFFF" vlink="FFFFFF">';
+    }
+    else
+    { // dark mode
+      $erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#006699" vlink="#006699">';
+    }
+
     $erg .= '<table border="0" width="100%" cellpadding="1">'.
             '<tr>'.
               '<td>'.
@@ -24,7 +32,7 @@ class categoriesV extends html4V
               '</td>'.
               '<td>'.
               '<font face="'.$this->getData('font').'">';
-              
+
     for ($i = 0; $i < count($feedTable); $i++)
     {
       $table = $feedTable[$i];
@@ -32,7 +40,7 @@ class categoriesV extends html4V
                                 'tableIdx' => $i),
                           $table['name'],
                           array('target' => 'left'));
-      
+
       if ($i != (count($feedTable) - 1))
       {
         $erg .= ' | ';
@@ -47,7 +55,7 @@ class categoriesV extends html4V
 
     return $erg;
   }
-  
+
 }
 
 ?>

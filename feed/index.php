@@ -32,9 +32,10 @@ class feed extends control
   public $tableIdx = '';
   public $feedIdx = '';
   public $ui = '';
+  public $uim = '';
   public $iU = '';
 
-  public $gsheet = ''; // pubhtml: https://docs.google.com/spreadsheets/d/e/2PACX-1vTm6Ks8tSwkcgTomyM7Q-EBN24FQB8hqeTNqObrSZ2etYEhbEXC5xdm5g-OyldWWZljJgi8teqXFnyz/pubhtml
+  public $tsv = ''; // pubhtml: https://docs.google.com/spreadsheets/d/e/2PACX-1vTm6Ks8tSwkcgTomyM7Q-EBN24FQB8hqeTNqObrSZ2etYEhbEXC5xdm5g-OyldWWZljJgi8teqXFnyz/pubhtml
                        // source: https://docs.google.com/spreadsheets/d/1xEbY3h-U2jYf6UyV7y9wNNS6aXerNne-HZg3DG6Xt_A/edit?usp=sharing
   public $appName = 'feed';
   public $font = 'Arial'; // Courier, Times New Roman, Arial
@@ -45,32 +46,21 @@ class feed extends control
    */
   public function __construct()
   {
-    $this->gsheet = getReqVar('gsheet');
+    $this->tsv = getReqVar('tsv');
     $this->ui = (getReqVar('ui') != '') ? getReqVar('ui') : 'html2V';
+    $this->uim = (getReqVar('uim') != '') ? getReqVar('uim') : 'l';
     $this->iU = (getReqVar('iU') != '') ? getReqVar('iU') : IMAGE_USE_NONE;
     $hook = getReqVar('hook');
     $vname = '';
     $matches = array();
 
-    // if passed a full link to the gsheet, extract the sheet id
-    if ($this->gsheet != '')
-    {
-      if (preg_match("/e\/(.*)\/pubhtml/", $this->gsheet, $matches) == 1)
-      {
-        if (isset($matches[1]))
-        {
-          $this->gsheet = $matches[1];
-        }
-      }
-    }
-
-    if (($this->gsheet == false) || ($hook == 'setup'))
+    if (($this->tsv == false) || ($hook == 'setup'))
     {
       // Set login view
       parent::__construct();
       $this->view = new loginV();
 
-      $this->view->stateParams = array('ui' => $this->ui, 'gsheet' => $this->gsheet, 'iU' => $this->iU);
+      $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
       $this->view->setData('appName', $this->appName);
     }
     else
@@ -97,10 +87,11 @@ class feed extends control
       $vName = $this->ui."\\".$vName;
       $this->view = new $vName();
 
-      $this->view->stateParams = array('ui' => $this->ui, 'gsheet' => $this->gsheet, 'iU' => $this->iU);
+      $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
       $this->view->setData('appName', $this->appName);
       $this->view->setData('hook', $this->hook);
       $this->view->setData('font', $this->font);
+      $this->view->setData('uim', $this->uim);
     }
   }
 
@@ -129,7 +120,7 @@ class feed extends control
   {
     try
     {
-      if ($this->gsheet == false)
+      if ($this->tsv == false)
       { // draw setup screen
         $this->setup();
       }
@@ -138,9 +129,9 @@ class feed extends control
         if ($this->ui == 'html4V')
         {
           // we need tableName for the frameset - so we have to make this costly request
-          $gs = new GSheetsM();
-          $feedTable = $gs->fetchTable($this->gsheet);
-          $this->view->setData('gsheetName', $feedTable['tableName']);
+          $gs = new tsvM();
+          $feedTable = $gs->fetchTable($this->tsv);
+          $this->view->setData('tsvName', $feedTable['tableName']);
           $this->view->drawPage();
         }
         else
@@ -163,12 +154,12 @@ class feed extends control
   {
     try
     {
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsv);
 
       $this->view->setData('headline', 'Categories');
       $this->view->setData('categories', $feedTable);
-      $this->view->setData('gsheetName', $feedTable['tableName']);
+      $this->view->setData('tsvName', $feedTable['tableName']);
 
       $this->view->drawPage();
     }
@@ -189,12 +180,12 @@ class feed extends control
     {
       $tableIdx = getReqVar('tableIdx');
 
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsv);
       $table     = $feedTable['sheets'][$tableIdx]['data'];
       $tableName = $feedTable['sheets'][$tableIdx]['name'];
 
-      $this->view->setData('gsheetName', $feedTable['tableName']);
+      $this->view->setData('tsvName', $feedTable['tableName']);
       $this->view->setData('tableIdx', $tableIdx);
       $this->view->setData('tableName', $tableName);
       $this->view->setData('headline', $tableName);
@@ -220,8 +211,8 @@ class feed extends control
       $tableIdx = getReqVar('tableIdx');
       $feedIdx  = getReqVar('feedIdx');
 
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsv);
       $table     = $feedTable['sheets'][$tableIdx]['data'];
       $tableName = $feedTable['sheets'][$tableIdx]['name'];
 
@@ -229,7 +220,7 @@ class feed extends control
       $feed = $feedObj->fetchRSS($table[$feedIdx]['url']);
 
       $this->view->setData('feedURL', $table[$feedIdx]['url']);
-      $this->view->setData('gsheetName', $feedTable['tableName']);
+      $this->view->setData('tsvName', $feedTable['tableName']);
       $this->view->setData('tableIdx', $tableIdx);
       $this->view->setData('tableName', $tableName);
       $this->view->setData('feedIdx', $feedIdx);
@@ -258,8 +249,8 @@ class feed extends control
       $feedIdx     = getReqVar('feedIdx');
       $articleIdx  = getReqVar('articleIdx');
 
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsv);
       $table     = $feedTable['sheets'][$tableIdx]['data'];
       $tableName = $feedTable['sheets'][$tableIdx]['name'];
       $xpath     = $table[$feedIdx]['xpath'];
@@ -273,7 +264,7 @@ class feed extends control
       $article = $c->fetchContent($feed['data'][$articleIdx]['link'], $xpath);
 
       $this->view->setData('debug', array('xpath' => $xpath, 'feedURL' => $url, 'pageURL' => $feed['data'][$articleIdx]['link']));
-      $this->view->setData('gsheetName', $feedTable['tableName']);
+      $this->view->setData('tsvName', $feedTable['tableName']);
       $this->view->setData('article', $article);
       $this->view->setData('tableIdx', $tableIdx);
       $this->view->setData('tableName', $tableName);

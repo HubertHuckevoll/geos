@@ -3,7 +3,7 @@ require_once('cachedRequestM.php');
 
 class GSheetsM extends cachedRequestM
 {
-  
+
   /**
    * Konstruktor
    * ________________________________________________________________
@@ -13,7 +13,7 @@ class GSheetsM extends cachedRequestM
     parent::__construct();
     libxml_use_internal_errors(true);
   }
-  
+
   /**
    * fetch a GDocs table
    * ________________________________________________________________
@@ -28,18 +28,18 @@ class GSheetsM extends cachedRequestM
     $tables = array();
     $entry = array();
     $html = false;
-    
+
     try
     {
       $html = $this->grab('https://docs.google.com/spreadsheets/d/e/'.$gsheet.'/pubhtml');
-  
+
       if ($html != '')
       {
         $dom = new DomDocument();
         $dom->loadHTML($html);
         $dom->preserveWhiteSpace = false;
         $xp = new DOMXpath($dom);
-        
+
         // Grab title of the full table
         $nodes = $xp->query('//*[@id="doc-title"]');
         foreach ($nodes as $node)
@@ -64,7 +64,7 @@ class GSheetsM extends cachedRequestM
           {
             $id = $node->parentNode->getAttribute('id');
             $id = substr($id, strlen('sheet-button-'));
-            
+
             $tables[$id] = $this->Utf8ToIso(trim($node->nodeValue));
           }
         }
@@ -74,9 +74,9 @@ class GSheetsM extends cachedRequestM
         {
           $entry = array();
           $entry['name'] = $this->Utf8ToIso(trim($tableName));
-          
+
           $nodes = $xp->query("//*[@id='".$tableId."']//tr");
-  
+
           $i = 0;
           foreach($nodes as $node)
           {
@@ -103,15 +103,15 @@ class GSheetsM extends cachedRequestM
               $i++;
             }
           }
-          
+
           $data['sheets'][] = $entry;
         }
-        
+
         return $data;
       }
       else
       {
-        throw new Exception('Angefordertes GDocs Sheets Document war leer.');
+        throw new Exception('Requested GDocs Sheets Document was empty.');
       }
     }
     catch (Exception $e)

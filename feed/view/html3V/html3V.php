@@ -15,14 +15,18 @@ class html3V extends \view
     $erg .= '<html>';
     $erg .= '<head>';
     $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'; //this is also set in the header, see view.php
-    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('gsheetName').' - '.$this->getData('headline').'</title>';
+    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
     $erg .= $this->debugVars();
     $erg .= '</head>';
 
-    $erg .= '<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
-
-    // dark mode
-    //$erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#0000FF" vlink="#0000FF">';
+    if ($this->getData('uim') == 'l')
+    { // light mode
+      $erg .= '<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
+    }
+    else
+    { // dark mode
+      $erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#006699" vlink="#006699">';
+    }
 
     $erg .= '<table border="0" width="100%" cellpadding="0">'.
             '<tr>'.
