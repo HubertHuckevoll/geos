@@ -33,7 +33,7 @@ class loginV extends \view
               '<hr>'.
                 '<input type="hidden" name="hook" value="index">'.
                 '&nbsp;'.
-                'Google Sheet ID / URL'.'&nbsp;-&nbsp;'.
+                'TSV-file URL'.'&nbsp;-&nbsp;'.
                 '<input type="text" name="tsv" value="'.$this->stateParams['tsv'].'">'.
 
                 '<br><br>'.
