@@ -18,7 +18,7 @@ class app extends control
   public $font = 'Arial'; // Courier, Times New Roman, Arial => Arial looks best on GEOS
   public $loc = 'de';
   public $wp = null;
-  public $locs = array(
+  public $locs = [
     "de" => "German",
     "en" => "English",
     "sv" => "Swedish",
@@ -27,7 +27,7 @@ class app extends control
     "pt" => "Portuguesen",
     "fr" => "French",
     "pl" => "Polish"
-  );
+  ];
 
   /**
    * Konstruktor
@@ -35,39 +35,31 @@ class app extends control
    */
   public function __construct()
   {
-    $this->ui =  (getReqVar('ui')  != '') ? getReqVar('ui')  : 'html2V';
     $this->loc = (getReqVar('loc') != '') ? getReqVar('loc') : 'de';
-    $vname = '';
+    $vName = (getReqVar('ui')  != '') ? getReqVar('ui')  : 'html2V';
 
     parent::__construct();
 
-    if ($this->hookWasEmpty == true)
+    if (
+         ($this->hookWasEmpty == true) &&
+         ($vName == 'html4V')
+       )
     {
-      if ($this->ui == 'html4V')
-      {
-        $vName = 'framesetV';
-      }
-      else
-      {
-        $vName = 'indexV';
-      }
+      $this->view = new $vName();
+      $this->view->setData('appName', $this->appName);
+      $this->view->drawFrameset();
     }
     else
     {
-      $vName = $this->hook.'V';
+      $this->view = new $vName();
+      $this->wp = new wikipM($this->loc);
+
+      $this->view->stateParams = ['ui' => $vName, 'loc' => $this->loc];
+      $this->view->setData('appName', $this->appName);
+      $this->view->setData('hook', $this->hook);
+      $this->view->setData('font', $this->font);
     }
-
-    $vName = $this->ui."\\".$vName;
-    $this->view = new $vName();
-
-    $this->wp = new wikipM($this->loc);
-
-    $this->view->stateParams = array('ui' => $this->ui, 'loc' => $this->loc);
-    $this->view->setData('appName', $this->appName);
-    $this->view->setData('hook', $this->hook);
-    $this->view->setData('font', $this->font);
   }
-
 
   /**
    * Index - is called when no hook is provided,
@@ -90,11 +82,11 @@ class app extends control
         $this->view->setData('results', $data);
       }
 
-      $this->view->drawPage();
+      $this->view->draw('index');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage();
+      $this->view->drawError($e);
     }
   }
 
@@ -108,7 +100,7 @@ class app extends control
     {
       $title = getReqVar('title');
 
-      $images = array();
+      $images = [];
 
       $fulltext = $this->wp->fulltext($title);
       $images = $this->wp->media($title);
@@ -118,11 +110,11 @@ class app extends control
       $this->view->setData('fulltext', $fulltext);
       $this->view->setData('images', $images);
 
-      $this->view->drawPage();
+      $this->view->draw('fulltext');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawError($e);
     }
   }
 
@@ -143,11 +135,11 @@ class app extends control
       $images = $this->wp->media($title);
       $this->view->setData('images', $images);
 
-      $this->view->drawPage();
+      $this->view->draw('media');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawError($e);
     }
   }
 }

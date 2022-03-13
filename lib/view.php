@@ -135,6 +135,33 @@ class view
   }
 
   /**
+   * draw function
+   * version for single class views
+   * overwritten in your project
+   * _________________________________________________________________
+   */
+  public function draw($viewFunc)
+  {
+    if (method_exists($this, $viewFunc))
+    {
+      return $this->$viewFunc();
+    }
+    else
+    {
+      throw new Exception('Unknown function call "'.$method.'" for object "'.get_class($obj).'".');
+    }
+  }
+
+  /**
+   * error version for single class views
+   * ________________________________________________________________
+   */
+  public function drawError($e)
+  {
+    return $e->getMessage();
+  }
+
+  /**
    * image proxy
    * ________________________________________________________________
    */

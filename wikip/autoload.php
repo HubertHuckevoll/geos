@@ -12,11 +12,7 @@ spl_autoload_register(function($className)
   switch($ct)
   {
     case 'V':
-      $parts = explode("\\", $className);
-      $ui = $parts[0];      // ui version
-      $view = $parts[1];    // view
-
-      $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/wikip/view/'.$ui.'/'.$view.'.php';
+      $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/wikip/view/'.$className.'.php';
     break;
 
     case 'M':
