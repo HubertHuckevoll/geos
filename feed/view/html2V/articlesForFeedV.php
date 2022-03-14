@@ -19,11 +19,11 @@ class articlesForFeedV extends html2V
 
     $articles = $feed['data'];
     $erg .= '<hr>';
-    $erg .= $this->link(array('hook' => 'index'), 'Categories');
+    $erg .= $this->link(['hook' => 'index'], 'Categories');
     $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'feedsForCat',
-                              'tableIdx' => $this->getData('tableIdx')),
-                        $this->getData('tableName'));
+    $erg .= $this->link(['hook' => 'feedsForCat',
+                         'tableIdx' => $this->getData('tableIdx')],
+                         $this->getData('tableName'));
     $erg .= '&nbsp;&gt;&nbsp;';
     $erg .= '<b>'.$this->getData('feedName').'</b>';
     $erg .= '<hr>';
@@ -42,11 +42,11 @@ class articlesForFeedV extends html2V
       {
         $article  = $articles[$i];
         $erg .= '<p>'.
-                  $this->link(array('hook' => 'previewArticle',
-                                    'tableIdx' => $tableIdx,
-                                    'feedIdx' => $feedIdx,
-                                    'articleIdx' => $i),
-                                     $article['title']).
+                  $this->link(['hook' => 'previewArticle',
+                               'tableIdx' => $tableIdx,
+                               'feedIdx' => $feedIdx,
+                               'articleIdx' => $i],
+                               $article['title']).
                 '</p>';
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)

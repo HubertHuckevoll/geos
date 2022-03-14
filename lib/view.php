@@ -2,8 +2,8 @@
 
 class view
 {
-  public $stateParams = array();
-  public $data = array();
+  public $stateParams = [];
+  public $data = [];
 
   /**
    * Konstruktor
@@ -18,7 +18,7 @@ class view
    * add Data From Array
    * _________________________________________________________________
    */
-  public function addDataFromArray($data)
+  public function addDataFromArray(array $data)
   {
     $this->data = array_merge($this->data, (array) $data);
   }
@@ -27,7 +27,7 @@ class view
    * set data key
    * _________________________________________________________________
    */
-  public function setData($key, $val)
+  public function setData(string $key, $val)
   {
     $this->data[$key] = $val;
   }
@@ -36,7 +36,7 @@ class view
    * get data key
    * _________________________________________________________________
    */
-  public function getData($key)
+  public function getData(string $key)
   {
     return $this->data[$key];
   }
@@ -45,9 +45,9 @@ class view
    * reset data
    * _________________________________________________________________
    */
-  public function reset()
+  public function resetData()
   {
-    $this->data = array();  // model data
+    $this->data = [];  // model data
   }
 
   /**
@@ -69,13 +69,52 @@ class view
     return $str;
   }
 
+  /**
+   * Execute a partial view function
+   * returns a html fragment
+   * call this function from your drawPage function
+   * and prepend and append the rest of the HTML there
+   * _________________________________________________________________
+   */
+  public function exec(string $viewFunc) : string
+  {
+    if (method_exists($this, $viewFunc))
+    {
+      return $this->$viewFunc();
+    }
+    else
+    {
+      throw new Exception('Unknown function call "'.$viewFunc.'" for object "'.get_class($this).'".');
+    }
+  }
+
+  /**
+   * output page - overwrite me!
+   * prepend and append boilerplate html
+   * _________________________________________________________________
+   */
+  public function drawPage(string $viewFunc) : void
+  {
+    // html / head / body / sidebar...
+    echo $this->exec($viewFunc);
+    // close everything
+  }
+
+  /**
+   * error version for single class views
+   * ________________________________________________________________
+   */
+  public function drawErrorPage($e)
+  {
+    echo $e->getMessage();
+  }
 
   /**
    * create a link
    * pass get params, link text and attributes
    * ________________________________________________________________
    */
-  public function link($paramsA, $textS, $attrA = array())
+  public function link(array $paramsA, string $textS, array $attrA = []) : string
   {
     $erg = '';
     $attrs = '';
@@ -99,7 +138,7 @@ class view
    * add state params to every request
    * ___________________________________________________________________
    */
-  public function href($paramsA)
+  public function href(array $paramsA) : string
   {
     $paramsA = array_merge($paramsA, $this->stateParams);
 
@@ -125,49 +164,12 @@ class view
   }
 
   /**
-   * output page - overwrite me
-   * pass an Exception to create an error page
-   * _________________________________________________________________
-   */
-  public function drawPage($e = null)
-  {
-    echo '';
-  }
-
-  /**
-   * draw function
-   * version for single class views
-   * overwritten in your project
-   * _________________________________________________________________
-   */
-  public function draw($viewFunc)
-  {
-    if (method_exists($this, $viewFunc))
-    {
-      return $this->$viewFunc();
-    }
-    else
-    {
-      throw new Exception('Unknown function call "'.$method.'" for object "'.get_class($obj).'".');
-    }
-  }
-
-  /**
-   * error version for single class views
-   * ________________________________________________________________
-   */
-  public function drawError($e)
-  {
-    return $e->getMessage();
-  }
-
-  /**
    * image proxy
    * ________________________________________________________________
    */
-  public function imageProxy($img, $newWidth)
+  public function imageProxy(string $img, int $newWidth) : string
   {
-    $img = 'http://'.$_SERVER['HTTP_HOST'].'/geos/tools/2gif.php?file='.urlencode($img).'&width='.$newWidth;
+    $img = 'http://'.$_SERVER['HTTP_HOST'].'/geos/tools/2gif.php?file='.urlencode($img).'&width='.(string) $newWidth;
     return $img;
   }
 }

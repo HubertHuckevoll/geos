@@ -15,16 +15,16 @@ class previewArticleV extends html2V
     $erg = '';
 
     $erg .= '<hr>';
-    $erg .= $this->link(array('hook' => 'index'), 'Categories');
+    $erg .= $this->link(['hook' => 'index'], 'Categories');
     $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'feedsForCat',
-                              'tableIdx' => $this->getData('tableIdx')),
-                        $this->getData('tableName'));
+    $erg .= $this->link(['hook' => 'feedsForCat',
+                         'tableIdx' => $this->getData('tableIdx')],
+                         $this->getData('tableName'));
     $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'articlesForFeed',
-                              'tableIdx' => $this->getData('tableIdx'),
-                              'feedIdx' => $this->getData('feedIdx')),
-                        $this->getData('feedName'));
+    $erg .= $this->link(['hook' => 'articlesForFeed',
+                         'tableIdx' => $this->getData('tableIdx'),
+                         'feedIdx' => $this->getData('feedIdx')],
+                          $this->getData('feedName'));
     $erg .= '<hr>';
 
     $erg .= '<h3>'.$this->getData('headline').'</h3>';

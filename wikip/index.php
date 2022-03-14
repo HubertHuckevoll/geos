@@ -82,11 +82,11 @@ class app extends control
         $this->view->setData('results', $data);
       }
 
-      $this->view->draw('index');
+      $this->view->drawPage('index');
     }
     catch(Exception $e)
     {
-      $this->view->drawError($e);
+      $this->view->drawErrorPage($e);
     }
   }
 
@@ -110,11 +110,11 @@ class app extends control
       $this->view->setData('fulltext', $fulltext);
       $this->view->setData('images', $images);
 
-      $this->view->draw('fulltext');
+      $this->view->drawPage('fulltext');
     }
     catch(Exception $e)
     {
-      $this->view->drawError($e);
+      $this->view->drawErrorPage($e);
     }
   }
 
@@ -135,11 +135,11 @@ class app extends control
       $images = $this->wp->media($title);
       $this->view->setData('images', $images);
 
-      $this->view->draw('media');
+      $this->view->drawPage('media');
     }
     catch(Exception $e)
     {
-      $this->view->drawError($e);
+      $this->view->drawErrorPage($e);
     }
   }
 }

@@ -7,7 +7,7 @@ class html4V extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function draw($viewFunc)
+  public function drawPage($viewFunc) : void
   {
     $erg = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
@@ -20,7 +20,7 @@ class html4V extends \view
 
     $erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
     $erg .= '<font face="'.$this->getData('font').'">';
-    $erg .= parent::draw($viewFunc);
+    $erg .= $this->exec($viewFunc);
     $erg .= '</font>';
     $erg .= '</body>';
 
@@ -34,7 +34,7 @@ class html4V extends \view
    * draw error page
    * _____________________________________________________________________
    */
-  public function drawError($e = null)
+  public function drawErrorPage($e = null) : void
   {
     $erg = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
@@ -49,7 +49,7 @@ class html4V extends \view
     $erg .= '<font face="'.$this->getData('font').'">';
     $erg .= '<h3>Error:</h3>';
     $erg .= '<p>';
-    $erg .= parent::drawError($e);
+    $erg .= $e->getMessage();
     $erg .= '</font>';
     $erg .= '</p>';
     $erg .= '</body>';

@@ -36,7 +36,7 @@ class feed extends control
   public $iU = '';
 
   public $tsv = ''; // pubhtml: https://docs.google.com/spreadsheets/d/e/2PACX-1vTm6Ks8tSwkcgTomyM7Q-EBN24FQB8hqeTNqObrSZ2etYEhbEXC5xdm5g-OyldWWZljJgi8teqXFnyz/pubhtml
-                       // source: https://docs.google.com/spreadsheets/d/1xEbY3h-U2jYf6UyV7y9wNNS6aXerNne-HZg3DG6Xt_A/edit?usp=sharing
+                    // source: https://docs.google.com/spreadsheets/d/1xEbY3h-U2jYf6UyV7y9wNNS6aXerNne-HZg3DG6Xt_A/edit?usp=sharing
   public $appName = 'feed';
   public $font = 'Arial'; // Courier, Times New Roman, Arial
 

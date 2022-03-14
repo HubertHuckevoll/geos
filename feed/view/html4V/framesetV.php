@@ -7,7 +7,6 @@ class framesetV extends \view
 
   /**
    * frameset
-   * 16%, *, 24%
    * _____________________________________________________________________
    */
   public function drawPage($e = null)
@@ -19,9 +18,9 @@ class framesetV extends \view
                 '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'.
               '</head>'.
               '<frameset rows="11%,*" frameborder="0" border="0" framespacing="0">'.
-                '<frame name="top" src="'.$this->href(array('hook' => 'categories')).'" scrolling="no">'.
+                '<frame name="top" src="'.$this->href(['hook' => 'categories']).'" scrolling="no">'.
                 '<frameset cols="*,600,*" frameborder="0" border="0" framespacing="0">'.
-                  '<frame name="left"   scrolling="auto" src="'.$this->href(array('hook'=>'feedsForCat', 'tableIdx'=>0)).'">'.
+                  '<frame name="left"   scrolling="auto" src="'.$this->href(['hook' => 'feedsForCat', 'tableIdx' => 0]).'">'.
                   '<frame name="right"  scrolling="auto">'.
                   '<frame name="middle" scrolling="auto">'.
                 '</frameset>'.

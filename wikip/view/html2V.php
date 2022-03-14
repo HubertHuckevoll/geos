@@ -6,7 +6,7 @@ class html2V extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function draw($viewFunc)
+  public function drawPage($viewFunc) : void
   {
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
     $erg .= '<html>';
@@ -19,7 +19,7 @@ class html2V extends \view
     $erg .= '<body>';
     $erg .= '<h1>'.$this->getData('appName').'</h1>';
     $erg .= '<h3>'.$this->getData('headline').'</h3>';
-    $erg .= parent::draw($viewFunc);
+    $erg .= $this->exec($viewFunc);
     $erg .= '</body>';
 
     $erg .= '</html>';
@@ -28,7 +28,7 @@ class html2V extends \view
     echo $erg;
   }
 
-  public function drawError($e)
+  public function drawErrorPage($e) : void
   {
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
     $erg .= '<html>';
@@ -40,7 +40,7 @@ class html2V extends \view
     $erg .= '<body>';
     $erg .= '<h1>'.$this->getData('appName').'</h1>';
     $erg .= '<h3>Error:</h3>';
-    $erg .= '<p>'.parent::drawError($e).'</p>';
+    $erg .= '<p>'.$e->getMessage().'</p>';
     $erg .= '</body>';
 
     $erg .= '</html>';
