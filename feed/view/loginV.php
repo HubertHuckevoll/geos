@@ -6,7 +6,7 @@ class loginV extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage($e = null)
+  public function drawPage(string $viewFunc = '') : void
   {
     $h2sel = ($this->stateParams['ui'] == 'html2V') ? ' selected' : '';
     $h3sel = ($this->stateParams['ui'] == 'html3V') ? ' selected' : '';

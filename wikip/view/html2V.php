@@ -6,7 +6,7 @@ class html2V extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage($viewFunc) : void
+  public function drawPage(string $viewFunc = '') : void
   {
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
     $erg .= '<html>';
@@ -28,7 +28,7 @@ class html2V extends \view
     echo $erg;
   }
 
-  public function drawErrorPage($e) : void
+  public function drawErrorPage(Exception $e) : void
   {
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
     $erg .= '<html>';

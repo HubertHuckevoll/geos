@@ -93,7 +93,7 @@ class view
    * prepend and append boilerplate html
    * _________________________________________________________________
    */
-  public function drawPage(string $viewFunc) : void
+  public function drawPage(string $viewFunc = '') : void
   {
     // html / head / body / sidebar...
     echo $this->exec($viewFunc);
@@ -104,7 +104,7 @@ class view
    * error version for single class views
    * ________________________________________________________________
    */
-  public function drawErrorPage($e)
+  public function drawErrorPage(Exception $e)
   {
     echo $e->getMessage();
   }

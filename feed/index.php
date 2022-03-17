@@ -68,6 +68,7 @@ class feed extends control
       // call parent constructor
       parent::__construct();
 
+      /*
       if ($this->hook == 'index')
       {
         if ($this->ui == 'html4V')
@@ -86,6 +87,9 @@ class feed extends control
 
       $vName = $this->ui."\\".$vName;
       $this->view = new $vName();
+      */
+
+      $this->view = new $this->ui();
 
       $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
       $this->view->setData('appName', $this->appName);
@@ -101,14 +105,7 @@ class feed extends control
    */
   public function setup()
   {
-    try
-    {
-      $this->view->drawPage();
-    }
-    catch(Exception $e)
-    {
-      $this->view->drawPage($e);
-    }
+    $this->view->drawPage();
   }
 
   /**
@@ -132,7 +129,7 @@ class feed extends control
           $gs = new tsvM();
           $feedTable = $gs->fetchTable($this->tsv);
           $this->view->setData('tsvName', $feedTable['tableName']);
-          $this->view->drawPage();
+          $this->view->drawFrameset();
         }
         else
         {
@@ -142,7 +139,7 @@ class feed extends control
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
   }
 
@@ -161,11 +158,11 @@ class feed extends control
       $this->view->setData('categories', $feedTable);
       $this->view->setData('tsvName', $feedTable['tableName']);
 
-      $this->view->drawPage();
+      $this->view->drawPage('categories');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
 
   }
@@ -191,11 +188,11 @@ class feed extends control
       $this->view->setData('headline', $tableName);
       $this->view->setData('services', $table);
 
-      $this->view->drawPage();
+      $this->view->drawPage('feedsForCat');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
 
   }
@@ -228,11 +225,11 @@ class feed extends control
       $this->view->setData('headline', $feed['meta']['description']);
       $this->view->setData('articles', $feed);
 
-      $this->view->drawPage();
+      $this->view->drawPage('articlesForFeed');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
 
   }
@@ -273,11 +270,11 @@ class feed extends control
       $this->view->setData('headline', $feed['data'][$articleIdx]['title']);
       $this->view->setData('articleFullLink', $feed['data'][$articleIdx]['link']);
 
-      $this->view->drawPage();
+      $this->view->drawPage('previewArticle');
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
   }
 

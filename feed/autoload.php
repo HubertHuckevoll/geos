@@ -19,11 +19,7 @@ spl_autoload_register(function($className)
       }
       else
       {
-        $parts = explode("\\", $className);
-        $ui = $parts[0];      // ui version
-        $view = $parts[1];    // view
-
-        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/view/'.$ui.'/'.$view.'.php';
+        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/view/'.$className.'.php';
       }
 
     break;

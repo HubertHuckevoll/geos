@@ -7,7 +7,7 @@ class html4V extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage($viewFunc) : void
+  public function drawPage(string $viewFunc = '') : void
   {
     $erg = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
@@ -34,7 +34,7 @@ class html4V extends \view
    * draw error page
    * _____________________________________________________________________
    */
-  public function drawErrorPage($e = null) : void
+  public function drawErrorPage(Exception $e) : void
   {
     $erg = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
