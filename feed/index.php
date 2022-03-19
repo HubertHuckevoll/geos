@@ -51,7 +51,6 @@ class feed extends control
     $this->uim = (getReqVar('uim') != '') ? getReqVar('uim') : 'l';
     $this->iU = (getReqVar('iU') != '') ? getReqVar('iU') : IMAGE_USE_NONE;
     $hook = getReqVar('hook');
-    $vname = '';
     $matches = array();
 
     if (($this->tsv == false) || ($hook == 'setup'))
