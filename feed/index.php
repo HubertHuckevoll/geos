@@ -59,38 +59,14 @@ class feed extends control
       // Set login view
       parent::__construct();
       $this->view = new loginV();
-
       $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
       $this->view->setData('appName', $this->appName);
     }
     else
     {
-      // call parent constructor
+      // other views
       parent::__construct();
-
-      /*
-      if ($this->hook == 'index')
-      {
-        if ($this->ui == 'html4V')
-        {
-          $vName = 'framesetV';
-        }
-        else
-        {
-          $vName = 'categoriesV';
-        }
-      }
-      else
-      {
-        $vName = $this->hook.'V';
-      }
-
-      $vName = $this->ui."\\".$vName;
-      $this->view = new $vName();
-      */
-
       $this->view = new $this->ui();
-
       $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
       $this->view->setData('appName', $this->appName);
       $this->view->setData('hook', $this->hook);
