@@ -12,8 +12,7 @@ require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/cachedRequestM.php');
 
 // Models & Views
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/feedGen/model/feedGenM.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/feedGen/view/feedGenIndexV.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/feedGen/view/feedGenFeedV.php');
+require_once($_SERVER["DOCUMENT_ROOT"].'/geos/feedGen/view/feedGenV.php');
 
 // Flags
 define('NO_CACHE', true);
@@ -54,7 +53,7 @@ class feedGen extends control
   {
     try
     {
-      $this->view = new feedGenIndexV();
+      $this->view = new feedGenV();
 
       $gs = new GSheetsM();
       $feedTable = $gs->fetchTable($this->gsheet);
@@ -64,7 +63,7 @@ class feedGen extends control
     }
     catch(Exception $e)
     {
-      $this->view->drawPage($e);
+      $this->view->drawErrorPage($e);
     }
   }
 
@@ -76,7 +75,7 @@ class feedGen extends control
   {
     try
     {
-      $this->view = new feedGenFeedV();
+      $this->view = new feedGenV();
       $service = getReqVar('service');
 
       $gs = new GSheetsM();
@@ -98,7 +97,7 @@ class feedGen extends control
             $this->view->setData('copyright', '"feedGen" created by MeyerK, 2019ff');
             $this->view->setData('content', $data);
 
-            $this->view->drawPage();
+            $this->view->drawFeed();
 
             break;
           }
@@ -114,7 +113,7 @@ class feedGen extends control
       $this->view->setData('copyright', '"feedGen" created by MeyerK, 2019ff');
       $this->view->setData('content', null);
 
-      $this->view->drawPage($e);
+      $this->view->drawFeed();
     }
   }
 }

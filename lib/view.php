@@ -104,7 +104,7 @@ class view
    * error version for single class views
    * ________________________________________________________________
    */
-  public function drawErrorPage(Exception $e)
+  public function drawErrorPage(Exception $e) : void
   {
     echo $e->getMessage();
   }

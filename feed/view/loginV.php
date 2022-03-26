@@ -24,6 +24,7 @@ class loginV extends \view
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">'.
             '<html>'.
             '<head>'.
+              '<title>feed Setup</title>'.
               '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'. //this must also be set in the header!                '<title>'.$this->getData('appName').'/setup</title>'.
             '</head>'.
             '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">'.

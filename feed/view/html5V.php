@@ -83,6 +83,52 @@ class html5V extends \view
   }
 
   /**
+   * Categories
+   * _________________________________________________________________
+   */
+  public function categories()
+  {
+    $tableName = $this->data['categories']['tableName'];
+    $feedTable = $this->data['categories']['sheets'];
+    $erg = '';
+
+    $erg .= '<ul>';
+    for ($i = 0; $i < count($feedTable); $i++)
+    {
+      $table = $feedTable[$i];
+      $erg .= '<li>'.$this->link(array('hook' => 'feedsForCat',
+                                       'tableIdx' => $i),
+                                 $table['name']).'</li>';
+    }
+    $erg .= '</ul>';
+
+    return $erg;
+  }
+
+  /**
+   * Services
+   * _________________________________________________________________
+   */
+  public function feedsForCat()
+  {
+    $tableIdx = $this->getData('tableIdx');
+    $feeds = $this->getData('services');
+
+    $erg .= '<ul>';
+    for ($i = 0; $i < count($feeds); $i++)
+    {
+      $feed = $feeds[$i];
+      $erg .= '<li>'.$this->link(array('hook' => 'articlesForFeed',
+                                       'tableIdx' => $tableIdx,
+                                       'feedIdx' => $i),
+                                 $feed['service']).'</li>';
+    }
+    $erg .= '</ul>';
+
+    return $erg;
+  }
+
+  /**
    * Articles
    * _________________________________________________________________
    */
@@ -127,7 +173,6 @@ class html5V extends \view
         }
 
         $erg .= '<p>';
-        $erg .= ($article['description'] != '') ? $article['description'] : 'n/a';
         $date = $article['date'];
         if ($date != '')
         {
@@ -144,52 +189,6 @@ class html5V extends \view
 
     $erg .= '<hr>';
     $erg .= '<small>'.$this->getData('feedURL').'</small>';
-
-    return $erg;
-  }
-
-  /**
-   * Categories
-   * _________________________________________________________________
-   */
-  public function categories()
-  {
-    $tableName = $this->data['categories']['tableName'];
-    $feedTable = $this->data['categories']['sheets'];
-    $erg = '';
-
-    $erg .= '<ul>';
-    for ($i = 0; $i < count($feedTable); $i++)
-    {
-      $table = $feedTable[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'feedsForCat',
-                                       'tableIdx' => $i),
-                                 $table['name']).'</li>';
-    }
-    $erg .= '</ul>';
-
-    return $erg;
-  }
-
-  /**
-   * Services
-   * _________________________________________________________________
-   */
-  public function feedsForCat()
-  {
-    $tableIdx = $this->getData('tableIdx');
-    $feeds = $this->getData('services');
-
-    $erg .= '<ul>';
-    for ($i = 0; $i < count($feeds); $i++)
-    {
-      $feed = $feeds[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'articlesForFeed',
-                                       'tableIdx' => $tableIdx,
-                                       'feedIdx' => $i),
-                                 $feed['service']).'</li>';
-    }
-    $erg .= '</ul>';
 
     return $erg;
   }

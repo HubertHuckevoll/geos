@@ -14,7 +14,7 @@ class feedGenM extends model
     {
       // load html
       $html = $this->grab($url);
-      
+
       // create Document
       $doc = new DOMDocument();
       $doc->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS | LIBXML_NOEMPTYTAG | LIBXML_NOXMLDECL);
@@ -22,7 +22,7 @@ class feedGenM extends model
       // fetch target nodes
       $xp = new DOMXPath($doc);
       $linkEls = $xp->query($linkXpath);
-      
+
       // fetch description elements, if any
       if ($descXpath != '')
       {
@@ -40,29 +40,29 @@ class feedGenM extends model
         $href = $linkEls[$i]->getAttribute('href');
         $href = $this->Utf8ToIso(trim($href));
         $href = $this->ensureFullURL($url, $href);
-        
+
         $title = $this->Utf8ToIso(trim($linkEls[$i]->textContent));
         $desc  = $this->Utf8ToIso(trim($descEls[$i]->textContent));
-        
+
         if ($title == $desc)
         {
-          $desc = 'n/a';
+          $desc = '';
         }
 
         $data[] = array('title'       => $title,
                         'description' => $desc,
                         'link'        => $href);
       }
-      
+
       return $data;
     }
     catch(Exception $e)
     {
       throw $e;
     }
-    
+
   }
-  
+
   /**
    * make sure we always have a full URL to link to
    * ________________________________________________________________
@@ -83,11 +83,11 @@ class feedGenM extends model
 
       // has trailing slash?
       $ch = substr($href, 0, 1);
-      
+
       // combine base path and href, with or without slash
       $href = ($ch != '/') ? $path.'/'.$href : $path.$href;
     }
-    
+
     return $href;
   }
 

@@ -42,11 +42,11 @@ class tsvM extends cachedRequestM
           {
             if ($i == 0)
             {
-              $category = $lineArr[$i];
+              $category = $this->Utf8ToIso($lineArr[$i]);
             }
             else
             {
-              $entry[$keys[$i]] = $lineArr[$i];
+              $entry[$keys[$i]] = $this->Utf8ToIso($lineArr[$i]);
             }
           }
           $tables[$category][] = $entry;
