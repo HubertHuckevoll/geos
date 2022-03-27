@@ -1,0 +1,15 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[[$item]] (index.php:82, "fetch")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Array
+(
+    [category] => Technologie
+    [service] => infobasegeos
+    [title] => InfoBase Forum - PC-GEOS
+    [url] => http://www.geos-infobase.de/WBB_317/index.php?page=Board&boardID=1
+    [linkXpath] => //td[@class='columnTopic']//p/*[2]
+    [descXpath] => 
+)
+
+

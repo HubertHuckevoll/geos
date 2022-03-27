@@ -15,7 +15,7 @@ www.nextpit.de	FALSE	/feed/	FALSE	1660933944	fts_main	1629397922196
 .zeit.de	TRUE	/	TRUE	2145916555	creid	1688261963547315241
 www.fr.de	FALSE	/	FALSE	1674322416	cua_uuid	38468b85-3d9b-ecd0-5a4d-77ad92225684
 www.goethe.de	FALSE	/	FALSE	2147483647	HASSESSION	true
-#HttpOnly_antaiji.org	FALSE	/	FALSE	1679140098	qtrans_front_language	de
+#HttpOnly_antaiji.org	FALSE	/	FALSE	1679913409	qtrans_front_language	de
 .tagesschau.de	TRUE	/	FALSE	2147483647	population	52
 .reddit.com	TRUE	/	TRUE	1702814761	csv	2
 .reddit.com	TRUE	/	TRUE	1681064303	edgebucket	7vf8RtDWdocwqwxhnS

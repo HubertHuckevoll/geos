@@ -14,14 +14,14 @@ class tsvM extends cachedRequestM
   }
 
   /**
-   * fetch a GDocs table
+   * fetch a TSV table
    * ________________________________________________________________
    */
   public function fetchTable($tsvURL)
   {
-    $tables = array();
-    $fTable = array();
-    $entry = array();
+    $tableName = $this->getTableName($tsvURL);
+    $table = [];
+    $entry = [];
     $rawData = '';
 
     try
@@ -30,35 +30,24 @@ class tsvM extends cachedRequestM
 
       if ($rawData != '')
       {
+        $table['name'] = $tableName;
         $lines = str_getcsv($rawData, "\n"); // parse the rows
         $firstLine = array_shift($lines);
         $keys = str_getcsv($firstLine, "\t");
 
         foreach($lines as &$line)
         {
-          $entry = array();
+          $entry = [];
           $lineArr = str_getcsv($line, "\t"); // parse the items in rows
           for ($i = 0; $i < count($keys); $i++)
           {
-            if ($i == 0)
-            {
-              $category = $this->Utf8ToIso($lineArr[$i]);
-            }
-            else
-            {
-              $entry[$keys[$i]] = $this->Utf8ToIso($lineArr[$i]);
-            }
+            $entry[$keys[$i]] = $this->Utf8ToIso($lineArr[$i]);
           }
-          $tables[$category][] = $entry;
+
+          $table['data'][] = $entry;
         }
 
-        $fTable['tableName'] = substr($tsvURL, strrpos($tsvURL, '/')+1);
-        foreach($tables as $tableName => $table)
-        {
-          $fTable['sheets'][] = array('name' => $tableName, 'data' => $table);
-        }
-
-        return $fTable;
+        return $table;
       }
       else
       {
@@ -69,6 +58,12 @@ class tsvM extends cachedRequestM
     {
       throw $e;
     }
+  }
+
+  public function getTableName($tsvURL)
+  {
+    $tableName = substr($tsvURL, strrpos($tsvURL, '/') + 1);
+    return $tableName;
   }
 }
 

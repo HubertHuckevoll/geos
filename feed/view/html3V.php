@@ -1,6 +1,6 @@
 <?php
 
-class html3V extends \view
+class html3V extends \baseV
 {
   /**
    * draw page
@@ -8,11 +8,12 @@ class html3V extends \view
    */
   public function drawPage(string $viewFunc = '') : void
   {
+    $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">';
 
     $erg .= '<html>';
     $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'; //this is also set in the header, see view.php
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
     $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
     $erg .= $this->debugVars();
     $erg .= '</head>';
@@ -31,7 +32,7 @@ class html3V extends \view
               '<td></td>'.
               '<td width="600">'.
                 '<font face="'.$this->getData('font').'">'.
-                '<h1>'.$this->getData('appName').$this->link(array('hook' => 'setup'), '.').'</h1>';
+                '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
                 $erg .= $this->exec($viewFunc);
     $erg .=     '</font>';
     $erg .=   '</td>'.
@@ -52,6 +53,7 @@ class html3V extends \view
    */
   public function drawErrorPage(Exception $e) : void
   {
+    $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">';
 
     $erg .= '<html>';
@@ -97,17 +99,19 @@ class html3V extends \view
    */
   public function categories()
   {
-    $tableName = $this->data['categories']['tableName'];
-    $feedTable = $this->data['categories']['sheets'];
+    $categories = $this->getData('categories');
     $erg = '';
+    $i = 0;
 
     $erg .= '<ul>';
-    for ($i = 0; $i < count($feedTable); $i++)
+    foreach($categories as $cat)
     {
-      $table = $feedTable[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'feedsForCat',
-                                       'tableIdx' => $i),
-                                 $table['name']).'</li>';
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'feedsForCat',
+                           'tableIdx' => $i],
+                           $cat);
+      $erg .= '</li>';
+      $i++;
     }
     $erg .= '</ul>';
 
@@ -121,23 +125,21 @@ class html3V extends \view
   public function feedsForCat()
   {
     $tableIdx = $this->getData('tableIdx');
-    $feeds = $this->getData('services');
+    $feeds = $this->getData('feeds');
+    $erg = '';
 
     $erg .= '<hr>';
-    $erg .= $this->link(array('hook' => 'index'), 'Categories');
-    $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= '<b>'.$this->getData('tableName').'</b>';
+    $erg .= $this->renderBreadCrumbs('feedsForCat');
     $erg .= '<hr>';
 
     $erg .= '<ul>';
-
     for ($i = 0; $i < count($feeds); $i++)
     {
       $feed = $feeds[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'articlesForFeed',
-                                       'tableIdx' => $tableIdx,
-                                       'feedIdx' => $i),
-                                 $feed['service']).'</li>';
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $tableIdx, 'feedIdx' => $i],
+                          $feed['service']);
+      $erg .= '</li>';
     }
     $erg .= '</ul>';
 
@@ -150,20 +152,16 @@ class html3V extends \view
    */
   public function articlesForFeed()
   {
-    $feed = $this->getData('articles');
+    $feed = $this->getData('feedData');
+    $articles = $feed['data'];
     $tableIdx = $this->getData('tableIdx');
     $feedIdx = $this->getData('feedIdx');
+    $feedURL = $this->getData('feedURL');
     $img = '';
+    $erg = '';
 
-    $articles = $feed['data'];
     $erg .= '<hr>';
-    $erg .= $this->link(array('hook' => 'index'), 'Categories');
-    $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'feedsForCat',
-                              'tableIdx' => $this->getData('tableIdx')),
-                        $this->getData('tableName'));
-    $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= '<b>'.$this->getData('feedName').'</b>';
+    $erg .= $this->renderBreadCrumbs('articlesForFeed');
     $erg .= '<hr>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_MEDIUM)
@@ -178,14 +176,11 @@ class html3V extends \view
     {
       for ($i = 0; $i < count($articles); $i++)
       {
-        $article  = $articles[$i];
-        $erg .= '<p>'.
-                  $this->link(array('hook' => 'previewArticle',
-                                    'tableIdx' => $tableIdx,
-                                    'feedIdx' => $feedIdx,
-                                    'articleIdx' => $i),
-                                     $article['title']).
-                '</p>';
+        $article = $articles[$i];
+        $erg .= '<p>';
+        $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
+                            $article['title']);
+        $erg .= '</p>';
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
         {
@@ -211,7 +206,7 @@ class html3V extends \view
     }
 
     $erg .= '<hr>';
-    $erg .= '<small>'.$this->getData('feedURL').'</small>';
+    $erg .= '<small>'.$feedURL.'</small>';
 
     return $erg;
   }
@@ -223,22 +218,18 @@ class html3V extends \view
   public function previewArticle()
   {
     $article = $this->getData('article');
+    $tableIdx = $this->getData('tableIdx');
+    $feedIdx = $this->getData('feedIdx');
+    $headline = $this->getData('headline');
+    $articleFullLink = $this->getData('articleFullLink');
+
     $erg = '';
 
     $erg .= '<hr>';
-    $erg .= $this->link(array('hook' => 'index'), 'Categories');
-    $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'feedsForCat',
-                              'tableIdx' => $this->getData('tableIdx')),
-                        $this->getData('tableName'));
-    $erg .= '&nbsp;&gt;&nbsp;';
-    $erg .= $this->link(array('hook' => 'articlesForFeed',
-                              'tableIdx' => $this->getData('tableIdx'),
-                              'feedIdx' => $this->getData('feedIdx')),
-                        $this->getData('feedName'));
+    $erg .= $this->renderBreadCrumbs('previewArticle');
     $erg .= '<hr>';
 
-    $erg .= '<h3>'.$this->getData('headline').'</h3>';
+    $erg .= '<h3>'.$headline.'</h3>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
     {
@@ -259,27 +250,9 @@ class html3V extends \view
     // this has to be a link with a wordwrapped text to make sure
     // Skipper doesn't grow the table cell because the text is
     // too long...
-    $erg .= '<small><a href="'.$this->getData('articleFullLink').'" target="_blank">'.wordwrap($this->getData('articleFullLink'), 75, "\r", true).'</a></small>';
+    $erg .= '<small><a href="'.$articleFullLink.'" target="_blank">'.wordwrap($this->getData('articleFullLink'), 75, "\r", true).'</a></small>';
 
     return $erg;
-  }
-
-  /**
-   * check if remote file exists
-   * ________________________________________________________________
-   */
-  protected function hasLogo($feed)
-  {
-    if ($feed['meta']['logo'] != '')
-    {
-      $handle = @fopen($feed['meta']['logo'], 'r');
-      if ($handle !== false)
-      {
-        fclose($handle);
-        return true;
-      }
-    }
-    return false;
   }
 
 }

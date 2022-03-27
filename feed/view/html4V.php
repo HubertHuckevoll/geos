@@ -1,6 +1,6 @@
 <?php
 
-class html4V extends \view
+class html4V extends \baseV
 {
 
   /**
@@ -9,11 +9,12 @@ class html4V extends \view
    */
   public function drawPage(string $viewFunc = '') : void
   {
-    $erg = '';
+    $erg  = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
     $erg .= '<html>';
     $erg .= '<head>';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
     $erg .= $this->debugVars();
     $erg .= '</head>';
 
@@ -31,16 +32,19 @@ class html4V extends \view
    */
   public function drawErrorPage(Exception $e) : void
   {
-    $erg = '';
+    $erg  = '';
     $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
     $erg .= '<html>';
     $erg .= '<head>';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
     $erg .= $this->debugVars();
     $erg .= '</head>';
+    $erg .= '<body>';
 
     $erg .= '<h3>Fehler:</h3>';
     $erg .= '<p>'.$e->getMessage().'</p>';
+    $erg .= '</body>';
 
     $erg .= '</html>';
 
@@ -83,9 +87,9 @@ class html4V extends \view
    */
   public function categories()
   {
-    $tableName = $this->data['categories']['tableName'];
-    $feedTable = $this->data['categories']['sheets'];
+    $categories = $this->getData('categories');
     $erg = '';
+    $i = 0;
 
     if ($this->getData('uim') == 'l')
     { // light mode
@@ -100,24 +104,24 @@ class html4V extends \view
             '<tr>'.
               '<td>'.
                 '<font face="'.$this->getData('font').'">'.
-                  '<h1>'.$this->getData('appName').$this->link(array('hook' => 'setup'), '.', array('target' => '_top')).'</h1>'.
+                  '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.', ['target' => '_top']).'</h1>'.
                 '</font>'.
               '</td>'.
               '<td>'.
               '<font face="'.$this->getData('font').'">';
 
-    for ($i = 0; $i < count($feedTable); $i++)
+    foreach ($categories as $cat)
     {
-      $table = $feedTable[$i];
-      $erg .= $this->link(array('hook' => 'feedsForCat',
-                                'tableIdx' => $i),
-                          $table['name'],
-                          array('target' => 'left'));
+      $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $i],
+                          $cat,
+                          ['target' => 'left']);
 
-      if ($i != (count($feedTable) - 1))
+      if ($i != (count($categories) - 1))
       {
         $erg .= ' | ';
       }
+
+      $i++;
     }
 
     $erg .= '</font>'.
@@ -136,7 +140,9 @@ class html4V extends \view
   public function feedsForCat()
   {
     $tableIdx = $this->getData('tableIdx');
-    $feeds = $this->getData('services');
+    $feeds = $this->getData('feeds');
+    $category = $this->getData('category');
+    $headline = $this->getData('headline');
     $erg = '';
 
     if ($this->getData('uim') == 'l')
@@ -148,19 +154,16 @@ class html4V extends \view
       $erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#006699" vlink="#006699">';
     }
 
-    //$erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
     $erg .= '<font face="'.$this->getData('font').'">';
-    $erg .= '<h3>'.$this->getData('headline').'</h3>';
+    $erg .= '<h3>'.$headline.'</h3>';
 
     for ($i = 0; $i < count($feeds); $i++)
     {
       $feed = $feeds[$i];
       $erg .= '<p>';
-      $erg .= $this->link(array('hook' => 'articlesForFeed',
-                                'tableIdx' => $tableIdx,
-                                'feedIdx' => $i),
+      $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $tableIdx, 'feedIdx' => $i],
                           $feed['service'],
-                          array('target' => 'middle'));
+                          ['target' => 'middle']);
       $erg .= '</p>';
     }
 
@@ -176,10 +179,12 @@ class html4V extends \view
    */
   public function articlesForFeed()
   {
-    $feed = $this->getData('articles');
+    $feed = $this->getData('feedData');
+    $articles = $feed['data'];
     $tableIdx = $this->getData('tableIdx');
     $feedIdx = $this->getData('feedIdx');
-    $articles = $feed['data'];
+    $category = $this->getData('category');
+    $feedName = $this->getData('feedName');
     $erg = '';
 
     if ($this->getData('uim') == 'l')
@@ -192,7 +197,7 @@ class html4V extends \view
     }
 
     $erg .= '<font face="'.$this->getData('font').'">';
-    $erg .= '<h3>'.$this->getData('feedName').'</h3>';
+    $erg .= '<h3>'.$feedName.'</h3>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_MEDIUM)
     {
@@ -207,14 +212,11 @@ class html4V extends \view
       for ($i = 0; $i < count($articles); $i++)
       {
         $article = $articles[$i];
-
-        $erg .= '<p>'.$this->link(array('hook' => 'previewArticle',
-                                        'tableIdx' => $tableIdx,
-                                        'feedIdx' => $feedIdx,
-                                        'articleIdx' => $i),
-                                  $article['title'],
-                                  array('target' => 'right')).
-                '</p>';
+        $erg .= '<p>';
+        $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
+                             $article['title'],
+                             ['target' => 'right']);
+        $erg .= '</p>';
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
         {
@@ -255,6 +257,15 @@ class html4V extends \view
   public function previewArticle()
   {
     $article = $this->getData('article');
+    $category = $this->getData('category');
+    $tableIdx = $this->getData('tableIdx');
+    $feedIdx = $this->getData('feedIdx');
+    $feedName = $this->getData('feedName');
+    $headline = $this->getData('headline');
+    $articleFullLink = $this->getData('articleFullLink');
+
+    $erg = '';
+
 
     if ($this->getData('uim') == 'l')
     { // light mode
@@ -265,11 +276,10 @@ class html4V extends \view
       $erg .= '<body text="#FFFFFF" bgcolor="#000000" link="#006699" vlink="#006699">';
     }
 
-    //$erg = '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">'.
     $erg .= '<tr>'.
             '<td>'.
             '<font face="'.$this->getData('font').'">'.
-            '<h3>'.$this->getData('headline').'</h3>';
+            '<h3>'.$headline.'</h3>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
     {
@@ -297,26 +307,6 @@ class html4V extends \view
 
     return $erg;
   }
-
-  /**
-   * check if remote file exists
-   * ________________________________________________________________
-   */
-  protected function hasLogo($feed)
-  {
-    if ($feed['meta']['logo'] != '')
-    {
-      $handle = @fopen($feed['meta']['logo'], 'r');
-      if ($handle !== false)
-      {
-        fclose($handle);
-        return true;
-      }
-    }
-    return false;
-  }
-
-
 
 }
 

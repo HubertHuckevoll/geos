@@ -46,19 +46,19 @@ class feed extends control
    */
   public function __construct()
   {
-    $this->tsv = getReqVar('tsv');
-    $this->ui = (getReqVar('ui') != '') ? getReqVar('ui') : 'html2V';
-    $this->uim = (getReqVar('uim') != '') ? getReqVar('uim') : 'l';
-    $this->iU = (getReqVar('iU') != '') ? getReqVar('iU') : IMAGE_USE_NONE;
-    $hook = getReqVar('hook');
-    $matches = array();
+    $this->tsv   = getReqVar('tsv');
+    $this->ui    = (getReqVar('ui')  != '') ? getReqVar('ui')  : 'html2V';
+    $this->uim   = (getReqVar('uim') != '') ? getReqVar('uim') : 'l';
+    $this->iU    = (getReqVar('iU')  != '') ? getReqVar('iU')  : IMAGE_USE_NONE;
+    $hook        = getReqVar('hook');
+    $matches     = [];
 
     if (($this->tsv == false) || ($hook == 'setup'))
     {
       // Set login view
       parent::__construct();
       $this->view = new loginV();
-      $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
+      $this->view->stateParams = ['ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU];
       $this->view->setData('appName', $this->appName);
     }
     else
@@ -66,7 +66,7 @@ class feed extends control
       // other views
       parent::__construct();
       $this->view = new $this->ui();
-      $this->view->stateParams = array('ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU);
+      $this->view->stateParams = ['ui' => $this->ui, 'uim' => $this->uim, 'tsv' => $this->tsv, 'iU' => $this->iU];
       $this->view->setData('appName', $this->appName);
       $this->view->setData('hook', $this->hook);
       $this->view->setData('font', $this->font);
@@ -100,10 +100,8 @@ class feed extends control
       { // draw either index (categories) or html4 frameset, which itself loads the frames...
         if ($this->ui == 'html4V')
         {
-          // we need tableName for the frameset - so we have to make this costly request
-          $gs = new tsvM();
-          $feedTable = $gs->fetchTable($this->tsv);
-          $this->view->setData('tsvName', $feedTable['tableName']);
+          $gs = new CatsM($this->tsv);
+          $this->view->setData('tsvName', $gs->getTableName());
           $this->view->drawFrameset();
         }
         else
@@ -126,12 +124,11 @@ class feed extends control
   {
     try
     {
-      $gs = new tsvM();
-      $feedTable = $gs->fetchTable($this->tsv);
+      $gs = new CatsM($this->tsv);
+      $categories = $gs->getCatNames();
 
       $this->view->setData('headline', 'Categories');
-      $this->view->setData('categories', $feedTable);
-      $this->view->setData('tsvName', $feedTable['tableName']);
+      $this->view->setData('categories', $categories);
 
       $this->view->drawPage('categories');
     }
@@ -152,16 +149,17 @@ class feed extends control
     {
       $tableIdx = getReqVar('tableIdx');
 
-      $gs = new tsvM();
-      $feedTable = $gs->fetchTable($this->tsv);
-      $table     = $feedTable['sheets'][$tableIdx]['data'];
-      $tableName = $feedTable['sheets'][$tableIdx]['name'];
+      $gs        = new CatsM($this->tsv);
+      $feeds     = $gs->getFeedsForCatIdx($tableIdx);
+      $category  = $gs->getCatName($tableIdx);
+      $tableName = $gs->getTableName();
 
-      $this->view->setData('tsvName', $feedTable['tableName']);
+      $this->view->setData('tsvName', $tableName);
+      $this->view->setData('headline', $category);
+
       $this->view->setData('tableIdx', $tableIdx);
-      $this->view->setData('tableName', $tableName);
-      $this->view->setData('headline', $tableName);
-      $this->view->setData('services', $table);
+      $this->view->setData('category', $category);
+      $this->view->setData('feeds', $feeds);
 
       $this->view->drawPage('feedsForCat');
     }
@@ -183,22 +181,24 @@ class feed extends control
       $tableIdx = getReqVar('tableIdx');
       $feedIdx  = getReqVar('feedIdx');
 
-      $gs = new tsvM();
-      $feedTable = $gs->fetchTable($this->tsv);
-      $table     = $feedTable['sheets'][$tableIdx]['data'];
-      $tableName = $feedTable['sheets'][$tableIdx]['name'];
+      $gs        = new CatsM($this->tsv);
+      $feeds     = $gs->getFeedsForCatIdx($tableIdx);
+      $feed      = $feeds[$feedIdx];
+      $tableName = $gs->getTableName();
+      $category  = $gs->getCatName($tableIdx);
 
-      $feedObj = new FeedsM();
-      $feed = $feedObj->fetchRSS($table[$feedIdx]['url']);
+      $feedObj  = new FeedsM();
+      $feedData = $feedObj->fetchRSS($feed['url']);
 
-      $this->view->setData('feedURL', $table[$feedIdx]['url']);
-      $this->view->setData('tsvName', $feedTable['tableName']);
+      $this->view->setData('feedURL', $feed['url']);
+      $this->view->setData('tsvName', $tableName);
       $this->view->setData('tableIdx', $tableIdx);
-      $this->view->setData('tableName', $tableName);
+      $this->view->setData('headline', $feedData['meta']['title']);
+
+      $this->view->setData('category', $category);
       $this->view->setData('feedIdx', $feedIdx);
-      $this->view->setData('feedName', $feed['meta']['title']);
-      $this->view->setData('headline', $feed['meta']['description']);
-      $this->view->setData('articles', $feed);
+      $this->view->setData('feedName', $feedData['meta']['title']);
+      $this->view->setData('feedData', $feedData);
 
       $this->view->drawPage('articlesForFeed');
     }
@@ -221,29 +221,32 @@ class feed extends control
       $feedIdx     = getReqVar('feedIdx');
       $articleIdx  = getReqVar('articleIdx');
 
-      $gs = new tsvM();
-      $feedTable = $gs->fetchTable($this->tsv);
-      $table     = $feedTable['sheets'][$tableIdx]['data'];
-      $tableName = $feedTable['sheets'][$tableIdx]['name'];
-      $xpath     = $table[$feedIdx]['xpath'];
-      $url       = $table[$feedIdx]['url'];
+      $gs        = new CatsM($this->tsv);
+      $feeds     = $gs->getFeedsForCatIdx($tableIdx);
+      $feed      = $feeds[$feedIdx];
+      $tableName = $gs->getTableName();
+      $category  = $gs->getCatName($tableIdx);
+      $xpath     = $feed['xpath'];
+      $url       = $feed['url'];
 
-      $feedObj = new FeedsM();
-      $feed = $feedObj->fetchRSS($url);
-      $feedName = $table[$feedIdx]['service'];
+      $feedObj  = new FeedsM();
+      $feedData = $feedObj->fetchRSS($feed['url']);
+      $feedName = $feed['service'];
 
-      $c = new Scraper2M();
-      $article = $c->fetchContent($feed['data'][$articleIdx]['link'], $xpath);
+      $c       = new Scraper2M();
+      $article = $c->fetchContent($feedData['data'][$articleIdx]['link'], $xpath);
 
-      $this->view->setData('debug', array('xpath' => $xpath, 'feedURL' => $url, 'pageURL' => $feed['data'][$articleIdx]['link']));
-      $this->view->setData('tsvName', $feedTable['tableName']);
+      $this->view->setData('debug', ['xpath' => $xpath, 'feedURL' => $url, 'pageURL' => $feed['link']]);
+      $this->view->setData('tsvName', $tableName);
+      $this->view->setData('headline', $article['meta']['title']);
+
       $this->view->setData('article', $article);
       $this->view->setData('tableIdx', $tableIdx);
       $this->view->setData('tableName', $tableName);
+      $this->view->setData('category', $category);
       $this->view->setData('feedIdx', $feedIdx);
       $this->view->setData('feedName', $feedName);
-      $this->view->setData('headline', $feed['data'][$articleIdx]['title']);
-      $this->view->setData('articleFullLink', $feed['data'][$articleIdx]['link']);
+      $this->view->setData('articleFullLink', $feed['link']);
 
       $this->view->drawPage('previewArticle');
     }

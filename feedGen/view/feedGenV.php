@@ -16,18 +16,15 @@ class feedGenV extends view
     $html .= '<h1>feedGen</h1>';
     $html .= '<hr>';
 
-    foreach($this->getData('sheets') as $sheet)
-    {
-      $html .= '<h3>'.$sheet['name'].'</h3>';
-      $html .= '<ul>';
-      foreach($sheet['data'] as $service)
-      {
-        $html .= '<li><a href="index.php?hook=fetch&service='.urlencode($service['service']).'" target="_blank">'.$service['title'].'</a></li>';
-      }
-      $html .= '</ul>';
-    }
+    $entries = $this->getData('table');
 
+    $html .= '<ul>';
+    foreach ($entries as $entry)
+    {
+      $html .= '<li>'.$entry['category'].': <a href="index.php?hook=fetch&service='.urlencode($entry['service']).'" target="_blank">'.$entry['title'].'</a></li>';
+    }
     $html .= '</ul>';
+
     $html .= '<hr>';
     $html .= '<h5>by MeyerK, 2019ff</h5>';
     $html .= '</body>';
@@ -66,7 +63,6 @@ class feedGenV extends view
     $rss .= '</channel>'."\r\n";
     $rss .= '</rss>';
 
-    // , charset=ISO-8859-1
     header('Content-Type: application/xml');
     echo $rss;
   }

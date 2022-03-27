@@ -1,6 +1,6 @@
 <?php
 
-class html5V extends \view
+class html5V extends \baseV
 {
   /**
    * draw page
@@ -8,11 +8,12 @@ class html5V extends \view
    */
   public function drawPage(string $viewFunc = '') : void
   {
+    $erg  = '';
     $erg .= '<!DOCTYPE html>';
     $erg .= '<html>';
     $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
     $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'; //this is also set in the header
     $erg .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
     $erg .= '<link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">';
     $erg .= '<link rel="stylesheet" href="https://newcss.net/new.min.css">';
@@ -29,8 +30,8 @@ class html5V extends \view
     $erg .= '<body>';
 
     $erg .= '<header>';
-    $erg .= '<h1>'.$this->getData('appName').$this->link(array('hook' => 'setup'), '.').'</h1>';
-    $erg .= '<p>'.$this->renderBreadCrumbs($viewFunc, $this->getData('articles')).'</p>';
+    $erg .= '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
+    $erg .= '<p>'.$this->renderBreadCrumbs($viewFunc).'</p>';
     $erg .= '</header>';
 
     $erg .= $this->exec($viewFunc);
@@ -48,11 +49,13 @@ class html5V extends \view
    */
   public function drawErrorPage(Exception $e) : void
   {
+    $erg  = '';
     $erg .= '<!DOCTYPE html>';
     $erg .= '<html>';
     $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
     $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'; //this is also set in the header
+
     $erg .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
     $erg .= '<link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">';
     $erg .= '<link rel="stylesheet" href="https://newcss.net/new.min.css">';
@@ -69,7 +72,7 @@ class html5V extends \view
     $erg .= '<body>';
 
     $erg .= '<header>';
-    $erg .= '<h1>'.$this->getData('appName').$this->link(array('hook' => 'setup'), '.').'</h1>';
+    $erg .= '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
     $erg .= '</header>';
 
     $erg .= '<h3>Fehler:</h3>';
@@ -88,17 +91,19 @@ class html5V extends \view
    */
   public function categories()
   {
-    $tableName = $this->data['categories']['tableName'];
-    $feedTable = $this->data['categories']['sheets'];
+    $categories = $this->getData('categories');
     $erg = '';
+    $i = 0;
 
     $erg .= '<ul>';
-    for ($i = 0; $i < count($feedTable); $i++)
+    foreach($categories as $cat)
     {
-      $table = $feedTable[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'feedsForCat',
-                                       'tableIdx' => $i),
-                                 $table['name']).'</li>';
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'feedsForCat',
+                           'tableIdx' => $i],
+                           $cat);
+      $erg .= '</li>';
+      $i++;
     }
     $erg .= '</ul>';
 
@@ -112,16 +117,18 @@ class html5V extends \view
   public function feedsForCat()
   {
     $tableIdx = $this->getData('tableIdx');
-    $feeds = $this->getData('services');
-
+    $feeds = $this->getData('feeds');
+    $category = $this->getData('category');
+    $erg = '';
     $erg .= '<ul>';
+
     for ($i = 0; $i < count($feeds); $i++)
     {
       $feed = $feeds[$i];
-      $erg .= '<li>'.$this->link(array('hook' => 'articlesForFeed',
-                                       'tableIdx' => $tableIdx,
-                                       'feedIdx' => $i),
-                                 $feed['service']).'</li>';
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $tableIdx, 'feedIdx' => $i],
+                          $feed['service']);
+      $erg .= '</li>';
     }
     $erg .= '</ul>';
 
@@ -129,18 +136,18 @@ class html5V extends \view
   }
 
   /**
-   * Articles
+   * articles
    * _________________________________________________________________
    */
   public function articlesForFeed()
   {
-    $feed = $this->getData('articles');
+    $feed = $this->getData('feedData');
+    $articles = $feed['data'];
     $tableIdx = $this->getData('tableIdx');
     $feedIdx = $this->getData('feedIdx');
+    $feedURL = $this->getData('feedURL');
     $img = '';
     $erg = '';
-
-    $articles = $feed['data'];
 
     if ($this->stateParams['iU'] >= IMAGE_USE_MEDIUM)
     {
@@ -155,14 +162,11 @@ class html5V extends \view
     {
       for ($i = 0; $i < count($articles); $i++)
       {
-        $article  = $articles[$i];
-        $erg .= '<p>'.
-                  $this->link(array('hook' => 'previewArticle',
-                                    'tableIdx' => $tableIdx,
-                                    'feedIdx' => $feedIdx,
-                                    'articleIdx' => $i),
-                                     $article['title']).
-                '</p>';
+        $article = $articles[$i];
+        $erg .= '<p>';
+        $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
+                            $article['title']);
+        $erg .= '</p>';
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
         {
@@ -188,7 +192,7 @@ class html5V extends \view
     }
 
     $erg .= '<hr>';
-    $erg .= '<small>'.$this->getData('feedURL').'</small>';
+    $erg .= '<small>'.$feedURL.'</small>';
 
     return $erg;
   }
@@ -200,9 +204,14 @@ class html5V extends \view
   public function previewArticle()
   {
     $article = $this->getData('article');
+    $tableIdx = $this->getData('tableIdx');
+    $feedIdx = $this->getData('feedIdx');
+    $headline = $this->getData('headline');
+    $articleFullLink = $this->getData('articleFullLink');
+
     $erg = '';
 
-    $erg .= '<h3>'.$this->getData('headline').'</h3>';
+    $erg .= '<h3>'.$headline.'</h3>';
 
     if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
     {
@@ -214,71 +223,7 @@ class html5V extends \view
       $erg .= '<p>'.$p.'</p>';
     }
 
-    $erg .= '<a href="'.$this->getData('articleFullLink').'" target="_blank">'.$this->getData('articleFullLink').'</a>';
-
-    return $erg;
-  }
-
-
-  /**
-   * check if remote file exists
-   * ________________________________________________________________
-   */
-  protected function hasLogo($feed)
-  {
-    if ($feed['meta']['logo'] != '')
-    {
-      $handle = @fopen($feed['meta']['logo'], 'r');
-      if ($handle !== false)
-      {
-        fclose($handle);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * render bread crumbs
-   * articles for feed
-   * _________________________________________________________________
-   */
-  public function renderBreadCrumbs($viewFunc, $feed)
-  {
-    $title = $this->getData('feedName');
-    $erg = '';
-
-    switch ($viewFunc)
-    {
-      case 'categories':
-        $erg .= '';
-      break;
-
-      case 'feedsForCat':
-        $erg .= $this->link(['hook' => 'index'], 'Categories');
-        $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= '<b>'.$this->getData('tableName').'</b>';
-      break;
-
-      case 'articlesForFeed':
-        $erg .= $this->link(['hook' => 'index'], 'Categories');
-        $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $this->getData('tableIdx')],
-                            $this->getData('tableName'));
-        $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= '<b>'.$title.'</b>';
-      break;
-
-      case 'previewArticle':
-        $erg .= $this->link(['hook' => 'index'], 'Categories');
-        $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $this->getData('tableIdx')],
-                            $this->getData('tableName'));
-        $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $this->getData('tableIdx'), 'feedIdx' => $this->getData('feedIdx')],
-                            $this->getData('feedName'));
-      break;
-    }
+    $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$this->getData('articleFullLink').'</a>';
 
     return $erg;
   }

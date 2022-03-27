@@ -7,7 +7,8 @@ require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/model.php');
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/view.php');
 
 // Advanced
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/GSheetsM.php');
+require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/tsvM.php');
+//require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/GSheetsM.php');
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/cachedRequestM.php');
 
 // Models & Views
@@ -23,7 +24,7 @@ define('NO_CACHE', true);
  */
 class feedGen extends control
 {
-  public $gsheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqO1JutfOToyPQaq-vCGNmVePhO7TOne-Ws_HidGMW17IvbEAqb_fb_tVgNBFY8Cdzl-4twJLRKwf_/pubhtml';
+  public $tsvF = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqO1JutfOToyPQaq-vCGNmVePhO7TOne-Ws_HidGMW17IvbEAqb_fb_tVgNBFY8Cdzl-4twJLRKwf_/pub?output=tsv';
   public $appName = 'feedGen';
 
   /**
@@ -33,15 +34,6 @@ class feedGen extends control
   public function __construct()
   {
     parent::__construct();
-
-    // extract the sheet id
-    if (preg_match("/e\/(.*)\/pubhtml/", $this->gsheet, $matches) == 1)
-    {
-      if (isset($matches[1]))
-      {
-        $this->gsheet = $matches[1];
-      }
-    }
   }
 
   /**
@@ -55,10 +47,11 @@ class feedGen extends control
     {
       $this->view = new feedGenV();
 
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsvF);
+      $feedTable = $feedTable['data'];
 
-      $this->view->setData('sheets', $feedTable['sheets']);
+      $this->view->setData('table', $feedTable);
       $this->view->drawPage();
     }
     catch(Exception $e)
@@ -78,29 +71,28 @@ class feedGen extends control
       $this->view = new feedGenV();
       $service = getReqVar('service');
 
-      $gs = new GSheetsM();
-      $feedTable = $gs->fetchTable($this->gsheet);
+      $gs = new tsvM();
+      $feedTable = $gs->fetchTable($this->tsvF);
+      $entries = $feedTable['data'];
 
-      foreach($feedTable['sheets'] as $sheet)
+      foreach($entries as $item)
       {
-        foreach($sheet['data'] as $item)
+        if ($item['service'] == $service)
         {
-          if ($item['service'] == $service)
-          {
-            $fM = new feedGenM();
-            $data = $fM->fetchContent($item['url'], $item['linkXpath'], $item['descXpath']);
+          $fM = new feedGenM();
+          libxml_use_internal_errors(true);
+          $data = $fM->fetchContent($item['url'], $item['linkXpath'], $item['descXpath']);
 
-            $this->view->setData('title', $item['title']);
-            $this->view->setData('homepage', $item['url']);
-            $this->view->setData('description', '<![CDATA[ Feed for "'.$item['url'].'" ]]>');
-            $this->view->setData('feedUrl', getProjectRootURL().'/index.php?hook=fetch&service='.$service);
-            $this->view->setData('copyright', '"feedGen" created by MeyerK, 2019ff');
-            $this->view->setData('content', $data);
+          $this->view->setData('title', $item['title']);
+          $this->view->setData('homepage', $item['url']);
+          $this->view->setData('description', '<![CDATA[ Feed for "'.$item['url'].'" ]]>');
+          $this->view->setData('feedUrl', getProjectRootURL().'/index.php?hook=fetch&service='.$service);
+          $this->view->setData('copyright', '"feedGen", created by MeyerK, 2019ff');
+          $this->view->setData('content', $data);
 
-            $this->view->drawFeed();
+          $this->view->drawFeed();
 
-            break;
-          }
+          break;
         }
       }
     }
