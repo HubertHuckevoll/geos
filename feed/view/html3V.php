@@ -250,7 +250,7 @@ class html3V extends \baseV
     // this has to be a link with a wordwrapped text to make sure
     // Skipper doesn't grow the table cell because the text is
     // too long...
-    $erg .= '<small><a href="'.$articleFullLink.'" target="_blank">'.wordwrap($this->getData('articleFullLink'), 75, "\r", true).'</a></small>';
+    $erg .= '<small><a href="'.$articleFullLink.'" target="_blank">'.wordwrap($articleFullLink, 75, "\r", true).'</a></small>';
 
     return $erg;
   }

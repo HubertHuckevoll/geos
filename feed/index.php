@@ -229,14 +229,15 @@ class feed extends control
       $xpath     = $feed['xpath'];
       $url       = $feed['url'];
 
-      $feedObj  = new FeedsM();
-      $feedData = $feedObj->fetchRSS($feed['url']);
-      $feedName = $feed['service'];
+      $feedObj   = new FeedsM();
+      $feedData  = $feedObj->fetchRSS($feed['url']);
+      $feedName  = $feed['service'];
 
-      $c       = new Scraper2M();
-      $article = $c->fetchContent($feedData['data'][$articleIdx]['link'], $xpath);
+      $c               = new Scraper2M();
+      $article         = $c->fetchContent($feedData['data'][$articleIdx]['link'], $xpath);
+      $articleFullLink = $feedData['data'][$articleIdx]['link'];
 
-      $this->view->setData('debug', ['xpath' => $xpath, 'feedURL' => $url, 'pageURL' => $feed['link']]);
+      $this->view->setData('debug', ['xpath' => $xpath, 'feedURL' => $url, 'pageURL' => $articleFullLink]);
       $this->view->setData('tsvName', $tableName);
       $this->view->setData('headline', $article['meta']['title']);
 
@@ -246,7 +247,7 @@ class feed extends control
       $this->view->setData('category', $category);
       $this->view->setData('feedIdx', $feedIdx);
       $this->view->setData('feedName', $feedName);
-      $this->view->setData('articleFullLink', $feed['link']);
+      $this->view->setData('articleFullLink', $articleFullLink);
 
       $this->view->drawPage('previewArticle');
     }

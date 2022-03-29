@@ -223,7 +223,7 @@ class html5V extends \baseV
       $erg .= '<p>'.$p.'</p>';
     }
 
-    $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$this->getData('articleFullLink').'</a>';
+    $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$articleFullLink.'</a>';
 
     return $erg;
   }

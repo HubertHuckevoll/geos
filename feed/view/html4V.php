@@ -297,7 +297,7 @@ class html4V extends \baseV
     }
 
     $erg .= '<hr>';
-    $erg .= '<small><a href="'.$this->getData('articleFullLink').'" target="_blank">'.wordwrap($this->getData('articleFullLink'), 75, "\r", true).'</a></small>';
+    $erg .= '<small><a href="'.$articleFullLink.'" target="_blank">'.wordwrap($articleFullLink, 75, "\r", true).'</a></small>';
 
     $erg .= '</font>'.
             '</td>'.
