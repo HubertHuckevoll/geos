@@ -2,5 +2,6 @@ feed/cache/*.tmp
 feed/cookie.txt
 feed/logger.html
 feed/stats.csv
+feed/logger.txt
 feedGen/cache/*.tmp
 feedGen/cache/cache_cleared_flag.tmp
