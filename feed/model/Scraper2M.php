@@ -5,9 +5,9 @@ class Scraper2M extends cachedRequestM
   public $doc = null;
   public $xp = null;
 
-  public $pElems = array();
-  public $pElemsScore = array();
-  public $statsLog = array();
+  public $pElems = [];
+  public $pElemsScore = [];
+  public $statsLog = [];
 
   public $upvoteScore = 25; // default value for upvoting
   public $upvoteTextLength = 15;
@@ -19,13 +19,13 @@ class Scraper2M extends cachedRequestM
   public $textOnly = false;
   public $allowAmpReroute = false; // true = breaks Süddeutsche Zeitung - y tho?
 
-  public $metaXPath = array(
+  public $metaXPath = [
                         'title'       => '/html/head/meta[@property="og:title"]',
                         'url'         => '/html/head/meta[@property="og:url"]',
                         'type'        => '/html/head/meta[@property="og:type"]',
                         'description' => '/html/head/meta[@property="og:description"]',
                         'image'       => '/html/head/meta[@property="og:image"]'
-                      );
+                      ];
 
   //public $contentXPath = '/html/body//p';
   public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre]';
@@ -50,10 +50,11 @@ class Scraper2M extends cachedRequestM
   public function fetchContent($url, $xpath = '')
   {
     $treshold = $this->getTreshold();
-    $data = array(
-                  'meta' => array(),
-                  'text' => array()
-                  );
+    $data = [
+      'meta' => [],
+      'text' => []
+    ];
+
     $this->contentXPath = ($xpath != '') ? $xpath : $this->contentXPath;
 
     try
@@ -157,28 +158,28 @@ class Scraper2M extends cachedRequestM
    */
   protected function rateAncestors($idx)
   {
-    $koTags = array('aside', 'nav', 'header', 'footer', 'form', 'noscript', 'figcaption', 'a',
-                    'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo');
+    $koTags = ['aside', 'nav', 'header', 'footer', 'form', 'noscript', 'figcaption', 'a',
+               'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
-    $koIDs = array('sidebar', 'comment', 'comments', 'nav', 'footer', 'header');
+    $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header'];
 
-    $koClasses = array('comment', 'comments',
-                       'popmake', 'ad-container', 'ad_container',
-                       'tagslist', 'tags-list', 'tags_list', 'tagbox',
-                       'relatedtopics', 'related-topics', 'related_topics',
-                       'relatedposts', 'related-posts', 'related_posts',
-                       'articlesidebar', 'article-sidebar', 'article_sidebar',
-                       'BorlabsCookie', 'teaser', 'hidden');
+    $koClasses = ['comment', 'comments',
+                  'popmake', 'ad-container', 'ad_container',
+                  'tagslist', 'tags-list', 'tags_list', 'tagbox',
+                  'relatedtopics', 'related-topics', 'related_topics',
+                  'relatedposts', 'related-posts', 'related_posts',
+                  'articlesidebar', 'article-sidebar', 'article_sidebar',
+                  'BorlabsCookie', 'teaser', 'hidden'];
 
-    $koClassesFragments = array('adblock');
+    $koClassesFragments = ['adblock'];
 
-    $koStyles = array('display: none;', 'display:none;',
-                      'visibility: hidden;', 'visibility:hidden;',
-                      'visibility: collapse;', 'visibility:collapse;');
+    $koStyles = ['display: none;', 'display:none;',
+                 'visibility: hidden;', 'visibility:hidden;',
+                 'visibility: collapse;', 'visibility:collapse;'];
 
-    $mainTags = array('body', 'article', 'main');
-    $mainIDs = array('content', 'article', 'main');
-    $mainClasses = array('content', 'article', 'main');
+    $mainTags = ['body', 'article', 'main'];
+    $mainIDs = ['content', 'article', 'main'];
+    $mainClasses = ['content', 'article', 'main'];
 
     $isSideContent = false;
     $isMainContent = false;
@@ -421,7 +422,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function getMetadata()
   {
-    $meta = array();
+    $meta = [];
 
     foreach($this->metaXPath as $key => $xp)
     {
@@ -442,7 +443,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function getPElems()
   {
-    $elements = array();
+    $elements = [];
 
     try
     {

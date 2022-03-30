@@ -26,12 +26,11 @@ class html5V extends \baseV
 
     $erg .= $this->debugVars();
     $erg .= '</head>';
-
     $erg .= '<body>';
 
     $erg .= '<header>';
     $erg .= '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
-    $erg .= '<p>'.$this->renderBreadCrumbs($viewFunc).'</p>';
+    $erg .= '<nav>'.$this->renderBreadCrumbs($viewFunc).'</nav>';
     $erg .= '</header>';
 
     $erg .= $this->exec($viewFunc);

@@ -20,7 +20,7 @@ class baseV extends \view
     switch ($viewFunc)
     {
       case 'categories':
-        $erg .= '';
+        $erg .= '<b>Categories</b>';
       break;
 
       case 'feedsForCat':

@@ -85,6 +85,10 @@ class html2V extends \baseV
     $erg = '';
     $i = 0;
 
+    $erg .= '<hr>';
+    $erg .= $this->renderBreadCrumbs('categories');
+    $erg .= '<hr>';
+
     $erg .= '<ul>';
     foreach($categories as $cat)
     {
