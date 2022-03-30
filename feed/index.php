@@ -126,7 +126,9 @@ class feed extends control
     {
       $gs = new CatsM($this->tsv);
       $categories = $gs->getCatNames();
+      $tableName = $gs->getTableName();
 
+      $this->view->setData('tsvName', $tableName);
       $this->view->setData('headline', 'Categories');
       $this->view->setData('categories', $categories);
 

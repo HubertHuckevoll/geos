@@ -13,7 +13,7 @@ class html5V extends \baseV
     $erg .= '<html>';
     $erg .= '<head>';
     $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
+    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
     $erg .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
     $erg .= '<link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">';
     $erg .= '<link rel="stylesheet" href="https://newcss.net/new.min.css">';

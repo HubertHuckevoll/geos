@@ -14,7 +14,7 @@ class html4V extends \baseV
     $erg .= '<html>';
     $erg .= '<head>';
     $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
+    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
     $erg .= $this->debugVars();
     $erg .= '</head>';
 
