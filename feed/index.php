@@ -191,6 +191,7 @@ class feed extends control
 
       $feedObj  = new FeedsM();
       $feedData = $feedObj->fetchRSS($feed['url']);
+      $feedName = $feed['service'];
 
       $this->view->setData('feedURL', $feed['url']);
       $this->view->setData('tsvName', $tableName);
@@ -199,7 +200,7 @@ class feed extends control
 
       $this->view->setData('category', $category);
       $this->view->setData('feedIdx', $feedIdx);
-      $this->view->setData('feedName', $feedData['meta']['title']);
+      $this->view->setData('feedName', $feedName);
       $this->view->setData('feedData', $feedData);
 
       $this->view->drawPage('articlesForFeed');
