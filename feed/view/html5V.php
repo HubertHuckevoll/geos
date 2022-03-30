@@ -163,6 +163,7 @@ class html5V extends \baseV
       for ($i = 0; $i < count($articles); $i++)
       {
         $article = $articles[$i];
+
         $erg .= '<p>';
         $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
                             $article['title']);
@@ -177,6 +178,7 @@ class html5V extends \baseV
         }
 
         $erg .= '<p>';
+        $erg .= $article['description'];
         $date = $article['date'];
         if ($date != '')
         {

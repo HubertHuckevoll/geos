@@ -191,6 +191,7 @@ class html3V extends \baseV
         }
 
         $erg .= '<p>';
+        $erg .= $article['description'];
         $date = $article['date'];
         if ($date != '')
         {

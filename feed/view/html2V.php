@@ -172,8 +172,9 @@ class html2V extends \baseV
           }
         }
 
-        $desc = wordwrap($desc, 70, "<br>", true);
         $erg .= '<p>';
+        $desc = $article['description'];
+        $desc = wordwrap($desc, 70, "<br>", true);
         $erg .= $desc;
 
         $date = $article['date'];
