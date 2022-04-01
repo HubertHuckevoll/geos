@@ -196,7 +196,7 @@ class feed extends control
       $this->view->setData('feedURL', $feed['url']);
       $this->view->setData('tsvName', $tableName);
       $this->view->setData('tableIdx', $tableIdx);
-      $this->view->setData('headline', $feedData['meta']['title']);
+      $this->view->setData('headline', $feedName);
 
       $this->view->setData('category', $category);
       $this->view->setData('feedIdx', $feedIdx);
