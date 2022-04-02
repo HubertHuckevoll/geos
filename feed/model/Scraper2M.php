@@ -29,7 +29,8 @@ class Scraper2M extends cachedRequestM
                         'image'       => '/html/head/meta[@property="og:image"]'
                       ];
 
-  public $koTags = ['aside', 'nav', 'header', 'footer', 'form', 'noscript', 'figcaption', 'a',
+  public $koTags = ['aside', 'nav', 'header', 'footer',
+                    'form', 'noscript', 'figure', 'figcaption', 'a', 'dialog',
                     'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
   public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header'];
@@ -37,6 +38,7 @@ class Scraper2M extends cachedRequestM
   public $koClasses = ['comment', 'comments',
                        'popmake',
                        'navbar', 'navigation',
+                       'ad-container', 'ad_container',
                        'tagslist', 'tags-list', 'tags_list', 'tagbox',
                        'relatedtopics', 'related-topics', 'related_topics',
                        'relatedposts', 'related-posts', 'related_posts',
@@ -44,7 +46,7 @@ class Scraper2M extends cachedRequestM
                        'BorlabsCookie', 'teaser', 'hidden',
                        'wp-caption-text', 'comment-form'];
 
-  public $koClassesFragments = ['adblock', 'ad-container', 'ad_container', 'ad_', 'ad-',
+  public $koClassesFragments = ['adblock',
                                 'cookie-notice',
                                 'comment-', '-comment'];
 

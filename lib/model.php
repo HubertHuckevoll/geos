@@ -69,9 +69,12 @@ class model
   {
     $max = 3;
     $i = 0;
-    while (mb_detect_encoding($str, 'UTF-8', true) == "UTF-8") // try to catch faulty multiple utf8 encodings
+    $fromCode = 'UTF-8';
+    $toCode = "ISO-8859-1//TRANSLIT";
+
+    while (mb_detect_encoding($str, $fromCode, true) == $fromCode) // try to catch faulty multiple utf8 encodings
     {
-      $str = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $str);
+      $str = iconv($fromCode, $toCode, $str);
       if ($i == $max) break;
       $i++;
     }
