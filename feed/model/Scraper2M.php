@@ -30,14 +30,14 @@ class Scraper2M extends cachedRequestM
                       ];
 
   public $koTags = ['aside', 'nav', 'header', 'footer',
-                    'form', 'noscript', 'figure', 'figcaption', 'a', 'dialog',
+                    'form', 'noscript', 'figure', 'figcaption', 'a', 'button', 'dialog',
                     'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
   public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header'];
 
   public $koClasses = ['comment', 'comments',
                        'popmake',
-                       'navbar', 'navigation',
+                       'navbar', 'navigation', 'lazytrigger',
                        'ad-container', 'ad_container',
                        'tagslist', 'tags-list', 'tags_list', 'tagbox',
                        'relatedtopics', 'related-topics', 'related_topics',
@@ -48,6 +48,7 @@ class Scraper2M extends cachedRequestM
 
   public $koClassesFragments = ['adblock',
                                 'cookie-notice',
+                                'teaser-', '-teaser',
                                 'comment-', '-comment'];
 
   public $koStyles = ['display: none;', 'display:none;',
@@ -109,6 +110,7 @@ class Scraper2M extends cachedRequestM
           {
             $this->statsLog[$i]['node_tagName'] = $this->getNode($i)->tagName;
             $this->statsLog[$i]['node_content'] = htmlspecialchars($this->getNode($i)->textContent, ENT_QUOTES, 'UTF-8', true);
+            $this->statsLog[$i]['node_path'] = $this->getNode($i)->parentNode->getNodePath();
           }
 
           if (
@@ -122,7 +124,7 @@ class Scraper2M extends cachedRequestM
             $this->rateLength($i);
             $this->ratePunctuation($i);
             $this->rateNeighbours($i);
-            //$this->ratePathStructure($i);
+            $this->rateSamePath($i);
           }
 
           // for debugging
@@ -183,7 +185,7 @@ class Scraper2M extends cachedRequestM
     if ($str == '')
     {
       $this->pElemsScore[$idx] = 0;
-      $this->statsLog[$idx]['is empty'] = 'true';
+      $this->statsLog[$idx]['is empty'] = 'TRUE';
 
       return true;
     }
@@ -280,15 +282,19 @@ class Scraper2M extends cachedRequestM
           if ($quot >= $quotTreshold)
           {
             $this->pElemsScore[$idx] = 0;
-            $this->statsLog[$idx]['node content is mainly links ('.$quot.'%)'] = 'true';
-
+            $this->statsLog[$idx]['node content is mainly links ('.$quot.'%)'] = 'TRUE';
             return true;
+          }
+          else
+          {
+            $this->statsLog[$idx]['node content is mainly links ('.$quot.'%)'] = 'false';
+            return false;
           }
         }
       }
     }
 
-    $this->statsLog[$idx]['node content is mainly links'] = 'false';
+    $this->statsLog[$idx]['node content is mainly links (no score)'] = 'false';
     return false;
   }
 
@@ -326,11 +332,11 @@ class Scraper2M extends cachedRequestM
     if (str_word_count($node->nodeValue) >= $this->upvoteTextLength)
     {
       $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength] = 'true';
+      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength.' words'] = 'TRUE';
     }
     else
     {
-      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength] = 'false';
+      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength.' words'] = 'false';
     }
   }
 
@@ -344,7 +350,7 @@ class Scraper2M extends cachedRequestM
     if (substr_count($node->nodeValue, ',') >= $this->upvoteNumCommas)
     {
       $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumCommas.' commas'] = 'true';
+      $this->statsLog[$idx]['has more than '.$this->upvoteNumCommas.' commas'] = 'TRUE';
     }
     else
     {
@@ -354,7 +360,7 @@ class Scraper2M extends cachedRequestM
     if (substr_count($node->nodeValue, '.') >= $this->upvoteNumDots)
     {
       $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumDots.' dots'] = 'true';
+      $this->statsLog[$idx]['has more than '.$this->upvoteNumDots.' dots'] = 'TRUE';
     }
     else
     {
@@ -374,7 +380,7 @@ class Scraper2M extends cachedRequestM
        )
     {
       $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['previous or next sibling is also p'] = 'true';
+      $this->statsLog[$idx]['previous or next sibling is also p'] = 'TRUE';
     }
     else
     {
@@ -383,43 +389,28 @@ class Scraper2M extends cachedRequestM
   }
 
   /**
-   * rate path structure similiarity
+   * check if neighboured elements have the same path
    * ________________________________________________________________
    */
-  protected function ratePathStructure($idx)
+  protected function rateSamePath($idx)
   {
-    $simPrevPercent = null;
-    $simNextPercent = null;
-    $inc = 0;
     $node = $this->getNode($idx);
     $current = $node->parentNode->getNodePath();
     $prev = $this->getNode($idx-1);
     $next = $this->getNode($idx+1);
-
+    $inc = 0;
     $inc = ($next === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
     $inc = ($prev === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
 
     if ($prev != null)
     {
       $prev = $prev->parentNode->getNodePath();
-      if ($prev != '')
+      if ($prev !== null)
       {
-        similar_text($current, $prev, $simPrevPercent);
-
-        if ((int) $simPrevPercent >= $this->upvotePathSimilarityTreshold)
+        if ($prev == $current)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['previous node has similiar path'] = 'true';
-        }
-        else
-        {
-          $this->statsLog[$idx]['previous node has similiar path'] = 'false';
-        }
-
-        if ((int) $simPrevPercent == 100)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['previous node has same path'] = 'true';
+          $this->statsLog[$idx]['previous node has same path'] = 'TRUE';
         }
         else
         {
@@ -431,24 +422,12 @@ class Scraper2M extends cachedRequestM
     if ($next != null)
     {
       $next = $next->parentNode->getNodePath();
-      if ($next != '')
+      if ($next !== null)
       {
-        similar_text($current, $next, $simNextPercent);
-
-        if ((int) $simNextPercent >= $this->upvotePathSimilarityTreshold)
+        if ($next == $current)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['next node has similiar path'] = 'true';
-        }
-        else
-        {
-          $this->statsLog[$idx]['next node has similiar path'] = 'false';
-        }
-
-        if ((int) $simNextPercent == 100)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['next node has same path'] = 'true';
+          $this->statsLog[$idx]['next node has same path'] = 'TRUE';
         }
         else
         {
@@ -641,7 +620,7 @@ class Scraper2M extends cachedRequestM
       if ($node->tagName == $tags[$i])
       {
         $ret = true;
-        $this->statsLog[$idx]['checking if tag name is "'.$tags[$i].'"'] = ($ret == true) ? 'true' : 'false';
+        $this->statsLog[$idx]['checking if tag name is "'.$tags[$i].'"'] = ($ret == true) ? 'TRUE' : 'false';
         break;
       }
     }
@@ -663,7 +642,7 @@ class Scraper2M extends cachedRequestM
       foreach ($idNames as $idName)
       {
         $ret = ($id == $idName) ? true : false;
-        $this->statsLog[$idx]['checking if ID is "'.$idName.'"'] = ($ret == true) ? 'true' : 'false';
+        $this->statsLog[$idx]['checking if ID is "'.$idName.'"'] = ($ret == true) ? 'TRUE' : 'false';
         if ($ret)
         {
           break;
@@ -697,7 +676,7 @@ class Scraper2M extends cachedRequestM
             $ret = true;
           }
 
-          $this->statsLog[$idx]['checking if a class with name "'.$className.'" exists'] = ($ret == true) ? 'true' : 'false';
+          $this->statsLog[$idx]['checking if a class with name "'.$className.'" exists'] = ($ret == true) ? 'TRUE' : 'false';
           if ($ret)
           {
             break 2;
@@ -724,7 +703,7 @@ class Scraper2M extends cachedRequestM
       foreach ($classNames as $className)
       {
         $ret = (strpos($classes, $className) !== false) ? true : false;
-        $this->statsLog[$idx]['checking if classes contain the string "'.$className.'"'] = ($ret == true) ? 'true' : 'false';
+        $this->statsLog[$idx]['checking if classes contain the string "'.$className.'"'] = ($ret == true) ? 'TRUE' : 'false';
         if ($ret)
         {
           break;
@@ -750,7 +729,7 @@ class Scraper2M extends cachedRequestM
       foreach ($styleStrings as $styleString)
       {
         $ret = (strpos($style, $styleString) !== false) ? true : false;
-        $this->statsLog[$idx]['checking if style attribute contains the string "'.$styleString.'"'] = ($ret == true) ? 'true' : 'false';
+        $this->statsLog[$idx]['checking if style attribute contains the string "'.$styleString.'"'] = ($ret == true) ? 'TRUE' : 'false';
         if ($ret)
         {
           break;
@@ -1039,6 +1018,78 @@ class Scraper2M extends cachedRequestM
 
       //Return the average of the low and high.
       return (($lowMid + $highMid) / 2);
+    }
+  }
+
+  protected function ratePathStructure($idx)
+  {
+    $simPrevPercent = null;
+    $simNextPercent = null;
+    $inc = 0;
+    $node = $this->getNode($idx);
+    $current = $node->parentNode->getNodePath();
+    $prev = $this->getNode($idx-1);
+    $next = $this->getNode($idx+1);
+
+    $inc = ($next === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
+    $inc = ($prev === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
+
+    if ($prev != null)
+    {
+      $prev = $prev->parentNode->getNodePath();
+      if ($prev != '')
+      {
+        similar_text($current, $prev, $simPrevPercent);
+
+        if ((int) $simPrevPercent >= $this->upvotePathSimilarityTreshold)
+        {
+          $this->pElemsScore[$idx] += $inc;
+          $this->statsLog[$idx]['previous node has similiar path'] = 'true';
+        }
+        else
+        {
+          $this->statsLog[$idx]['previous node has similiar path'] = 'false';
+        }
+
+        if ((int) $simPrevPercent == 100)
+        {
+          $this->pElemsScore[$idx] += $inc;
+          $this->statsLog[$idx]['previous node has same path'] = 'true';
+        }
+        else
+        {
+          $this->statsLog[$idx]['previous node has same path'] = 'false';
+        }
+      }
+    }
+
+    if ($next != null)
+    {
+      $next = $next->parentNode->getNodePath();
+      if ($next != '')
+      {
+        similar_text($current, $next, $simNextPercent);
+
+        if ((int) $simNextPercent >= $this->upvotePathSimilarityTreshold)
+        {
+          $this->pElemsScore[$idx] += $inc;
+          $this->statsLog[$idx]['next node has similiar path'] = 'true';
+        }
+        else
+        {
+          $this->statsLog[$idx]['next node has similiar path'] = 'false';
+        }
+
+        if ((int) $simNextPercent == 100)
+        {
+          $this->pElemsScore[$idx] += $inc;
+          $this->statsLog[$idx]['next node has same path'] = 'true';
+        }
+        else
+        {
+          $this->statsLog[$idx]['next node has same path'] = 'false';
+        }
+      }
     }
   }
 

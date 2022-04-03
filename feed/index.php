@@ -13,8 +13,8 @@ require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/view.php');
 require_once('autoload.php');
 
 // Flags
-define('CACHE', true);
-define('STATS', false);
+define('CACHE', false);
+define('STATS', true);
 //error_reporting(E_ALL);
 
 define('IMAGE_USE_NONE',   0); // no images
