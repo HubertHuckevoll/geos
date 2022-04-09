@@ -321,7 +321,7 @@ class FeedsM extends cachedRequestM
       $str = implode($str, ' ');
     }
 
-    return $this->Utf8ToIsoHtml(trim(strip_tags((string) $str)));
+    return $this->Utf8ToIsoHtml(trim($this->stripTags((string) $str)));
   }
 
   /**
@@ -335,7 +335,7 @@ class FeedsM extends cachedRequestM
       $str = implode($str, ' ');
     }
 
-    return $this->Utf8ToIso(trim(strip_tags((string) $str)));
+    return $this->Utf8ToIso(trim($this->stripTags((string) $str)));
   }
 
 }

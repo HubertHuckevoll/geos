@@ -29,14 +29,14 @@ class Scraper2M extends cachedRequestM
                         'image'       => '/html/head/meta[@property="og:image"]'
                       ];
 
-  public $koTags = ['aside', 'nav', 'header', 'footer',
-                    'form', 'noscript', 'figure', 'figcaption', 'a', 'button', 'dialog',
+  public $koTags = ['aside', 'nav', 'header', 'footer', 'dialog',
+                    'form', 'script', 'noscript', 'figure', 'figcaption', 'a', 'button',
                     'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
   public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header'];
 
   public $koClasses = ['comment', 'comments',
-                       'popmake',
+                       'popmake', 'modalwindow',
                        'navbar', 'navigation', 'lazytrigger',
                        'ad-container', 'ad_container',
                        'tagslist', 'tags-list', 'tags_list', 'tagbox',
@@ -47,17 +47,19 @@ class Scraper2M extends cachedRequestM
                        'wp-caption-text', 'comment-form'];
 
   public $koClassesFragments = ['adblock',
-                                'cookie-notice',
-                                'teaser-', '-teaser',
+                                'cookie',
                                 'comment-', '-comment'];
 
   public $koStyles = ['display: none;', 'display:none;',
                       'visibility: hidden;', 'visibility:hidden;',
                       'visibility: collapse;', 'visibility:collapse;'];
 
-  public $mainTags = ['body', 'article', 'main'];
+  public $koAttributes = ['role' => 'dialog'];
+
+  public $mainTags = ['article', 'main'];
   public $mainIDs = ['content', 'article', 'main'];
   public $mainClasses = ['content', 'article', 'main'];
+  public $mainAttributes = ['itemprop' => 'articleBody'];
 
   //public $contentXPath = '/html/body//p'; // works always
   public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre]'; // works
@@ -207,6 +209,7 @@ class Scraper2M extends cachedRequestM
                      ($this->checkClasses($idx, $node, $this->koClasses)) ||
                      ($this->checkClassesContain($idx, $node, $this->koClassesFragments)) ||
                      ($this->checkStyles($idx, $node, $this->koStyles)) ||
+                     ($this->checkAttributes($idx, $node, $this->koAttributes)) ||
                      ($this->checkTag($idx, $node, $this->koTags)); // FIXME: this doesn't make sense when checking the element itself and not the ancestors
 
     if ($isSideContent)
@@ -313,7 +316,8 @@ class Scraper2M extends cachedRequestM
       $isMainContent = false;
       $isMainContent = ($this->checkTag($idx, $node, $this->mainTags)) ||
                        ($this->checkID($idx, $node, $this->mainIDs)) ||
-                       ($this->checkClasses($idx, $node, $this->mainClasses));
+                       ($this->checkClasses($idx, $node, $this->mainClasses)) ||
+                       ($this->checkAttributes($idx, $node, $this->mainAttributes));
 
       if ($isMainContent)
       {
@@ -741,6 +745,31 @@ class Scraper2M extends cachedRequestM
   }
 
   /**
+   * checking for certain attributes with certain values
+   * ________________________________________________________________
+   */
+  protected function checkAttributes($idx, $node, $attributesToCheck)
+  {
+    $ret = false;
+
+    foreach ($attributesToCheck as $attributeToCheckKey => $attributeToCheckVal)
+    {
+      if ($node->hasAttribute($attributeToCheckKey))
+      {
+        $attribVal = $node->getAttribute($attributeToCheckKey);
+        $ret = ($attribVal == $attributeToCheckVal) ? true : false;
+        $this->statsLog[$idx]['checking for attribute "'.$attributeToCheckKey.'" with value "'.$attributeToCheckVal.'"'] = ($ret == true) ? 'TRUE' : 'false';
+        if ($ret == true)
+        {
+          break;
+        }
+      }
+    }
+
+    return $ret;
+  }
+
+  /**
    * clean Element
    * _________________________________________________________________
    */
@@ -760,27 +789,13 @@ class Scraper2M extends cachedRequestM
       $str = trim($element->ownerDocument->saveXML($element));
       $str = $this->stripTags($str, $this->allowedTags);
       $str = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $str); // FIXME: remove attributes from allowed tags.
-      $str = preg_replace("/(<br\ ?\/?>)+/", '<br><br>', $str);
+      $str = preg_replace("/(<br\ ?\/?>)+/", '<br><br>', $str); // replace multiple line breaks with ONE "empty line"
       $str = preg_replace("/^(<br\ ?\/?>)+/", '', $str); // remove leading line breaks - we put this in a p tag anyway
       $str = preg_replace("/(<br\ ?\/?>)+?/", '', $str); // remove trailing line breaks - we put this in a p tag anyway
     }
 
     $str = $this->Utf8ToIso($str);
     return $str;
-  }
-
-  /**
-   * strip tags, replace with space
-   * ________________________________________________________________
-   */
-  function stripTags($string, $allowable_tags = null)
-  {
-    $string = str_replace('<', ' <', $string);
-    $string = strip_tags($string, $allowable_tags);
-    $string = preg_replace('/\s+/', ' ', $string);
-    $string = trim($string);
-
-    return $string;
   }
 
   /**
@@ -813,7 +828,7 @@ class Scraper2M extends cachedRequestM
   }
 
   /**
-   * Logging function for scraper
+   * Debugging function for scraper
    * ________________________________________________________________
    */
   public function log()
@@ -823,7 +838,7 @@ class Scraper2M extends cachedRequestM
     $data = print_r($this->statsLog, true);
 
     $body  = '';
-    $body .= '<html><head><title>Feed Scraper Log</title></head><body>';
+    $body .= '<html><head><title>Scraper Log</title></head><body>';
     $body .= '<pre>'.$data.'</pre>';
     $body .= '</body></html>';
 

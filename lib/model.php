@@ -107,6 +107,20 @@ class model
     return $url;
   }
 
+  /**
+   * strip tags but replace with space
+   * ________________________________________________________________
+   */
+  function stripTags($string, $allowable_tags = null)
+  {
+    $string = str_replace('<', ' <', $string);
+    $string = strip_tags($string, $allowable_tags);
+    $string = preg_replace('/\s+/', ' ', $string); // replace multiple spaces with just one
+    $string = trim($string);
+
+    return $string;
+  }
+
 }
 
 ?>

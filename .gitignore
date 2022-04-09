@@ -5,3 +5,4 @@ feed/logger.txt
 feed/stats.csv
 feedGen/cache/*.tmp
 feedGen/cache/cache_cleared_flag.tmp
+feed/scraping.html
