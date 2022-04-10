@@ -5,6 +5,10 @@ class Scraper2M extends cachedRequestM
   public $doc = null;
   public $xp = null;
 
+  public $metadata = [
+    'meta' => [],
+    'text' => []
+  ];
   public $pElems = null;
   public $pElemsScore = null;
   public $statsLog = null;
@@ -13,11 +17,9 @@ class Scraper2M extends cachedRequestM
   public $upvoteTextLength = 15;
   public $upvoteNumCommas = 1;
   public $upvoteNumDots = 2;
-  public $upvotePathSimilarityTreshold = 75; //percent
 
   public $treshold = 75; // the final frontier
 
-  public $dumbMode = false;
   public $textOnly = false;
   public $allowAmpReroute = false; // true = breaks Süddeutsche Zeitung - y tho?
 
@@ -33,13 +35,14 @@ class Scraper2M extends cachedRequestM
                     'form', 'script', 'noscript', 'figure', 'figcaption', 'a', 'button',
                     'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
-  public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header'];
+  public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header', 'newsletter'];
 
   public $koClasses = ['comment', 'comments',
                        'popmake', 'modalwindow',
                        'navbar', 'navigation', 'lazytrigger',
                        'ad-container', 'ad_container',
-                       'tagslist', 'tags-list', 'tags_list', 'tagbox',
+                       'socialbuttons',
+                       'tagslist', 'taglist', 'tags-list', 'tags_list', 'tagbox', 'article-tags',
                        'relatedtopics', 'related-topics', 'related_topics',
                        'relatedposts', 'related-posts', 'related_posts',
                        'articlesidebar', 'article-sidebar', 'article_sidebar',
@@ -62,9 +65,9 @@ class Scraper2M extends cachedRequestM
   public $mainAttributes = ['itemprop' => 'articleBody'];
 
   //public $contentXPath = '/html/body//p'; // works always
-  public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre]'; // works
+  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre]'; // works
   //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::li]';
-  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::ol or self::ul]';
+  public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::ol or self::ul]';
   //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::h3 or self::h4]';
   //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::ol or self::ul or self::h3 or self::h4]';
 
@@ -85,7 +88,7 @@ class Scraper2M extends cachedRequestM
    */
   public function fetchContent($url, $xpath = '')
   {
-    $treshold = $this->getTreshold();
+    $node = null;
     $data = [
       'meta' => [],
       'text' => []
@@ -96,70 +99,67 @@ class Scraper2M extends cachedRequestM
     try
     {
       $this->loadDocument($url);
+      $this->findElements();
+      $this->findMetadata();
 
-      $data['meta'] = $this->getMetadata();
-      $this->setElements();
-
-      if (
-          (!$this->dumbMode) &&
-          ($xpath == '')
-         )
+      if ($xpath == '')
       {
         for ($i = 0; $i < $this->getNodeCount(); $i++)
         {
+          $node = $this->getNode($i);
           // for debugging
           if (STATS == true)
           {
-            $this->statsLog[$i]['node_tagName'] = $this->getNode($i)->tagName;
-            $this->statsLog[$i]['node_content'] = htmlspecialchars($this->getNode($i)->textContent, ENT_QUOTES, 'UTF-8', true);
-            $this->statsLog[$i]['node_path'] = $this->getNode($i)->parentNode->getNodePath();
+            $this->setLog($i, 'node_tagName', $node->tagName);
+            $this->setLog($i, 'node_content', htmlspecialchars($this->getNodeText($node), ENT_QUOTES, 'UTF-8', true));
+            $this->setLog($i, 'node_parent_path', $node->parentNode->getNodePath());
           }
 
           if (
-              (!$this->nodeIsEmpty($i)) &&
-              (!$this->isNodeSideContentByIdx($i)) &&
-              (!$this->isNodeAncestorSideContent($i)) &&
-              (!$this->nodeContentIsLinks($i))
+              (!$this->nodeIsEmpty($i, $node)) &&
+              (!$this->isNodeSideContent($i, $node)) &&
+              (!$this->isNodeAncestorSideContent($i, $node))
              )
           {
-            $this->rateAncestorsMainContent($i);
-            $this->rateLength($i);
-            $this->ratePunctuation($i);
-            $this->rateNeighbours($i);
-            $this->rateSamePath($i);
+            switch ($node->tagName)
+            {
+              case 'p':
+              case 'pre':
+              case 'blockquote':
+                $this->evaluateTextNode($i, $node);
+              break;
+
+              case 'ul':
+              case 'ol':
+                $this->evaluateList($i, $node);
+              break;
+            }
           }
 
           // for debugging
           if (STATS == true)
           {
-            $this->statsLog[$i]['TOTAL SCORE'] = (int) $this->pElemsScore[$i];
+            $this->setLog($i, 'TOTAL SCORE', $this->getScore($i));
           }
         }
 
-        if (STATS == true)
-        {
-          $this->log();
-          //$this->stats();
-        }
-
-        $this->removeZeroRated();
-
-        for ($i = 0; $i < $this->getNodeCount(); $i++)
-        {
-          if ($this->pElemsScore[$i] >= $this->getTreshold())
-          {
-            $str = $this->cleanElement($this->getNode($i));
-            $data['text'][] = $str;
-          }
-        }
+        $data['meta'] = $this->metadata;
+        $data['text'] = $this->renderContent();
       }
       else
       {
+        $data['meta'] = $this->metadata;
         for ($i = 0; $i < $this->getNodeCount(); $i++)
         {
-          $str = $this->cleanElement($this->getNode($i));
+          $node = $this->getNode($i);
+          $str = $this->getElementAsCleanedString($node);
           $data['text'][] = $str;
         }
+      }
+
+      if (STATS == true)
+      {
+        $this->log();
       }
 
       return $data;
@@ -171,28 +171,102 @@ class Scraper2M extends cachedRequestM
   }
 
   /**
+   * evaluate p nodes and the like
+   * ________________________________________________________________
+   */
+  protected function evaluateTextNode($idx, $node)
+  {
+    if (!$this->nodeContentIsLinks($idx, $node))
+    {
+      $this->rateAncestorsMainContent($idx, $node);
+      $this->rateLength($idx, $node);
+      $this->ratePunctuation($idx, $node);
+      $this->rateNeighbours($idx, $node);
+      $this->rateSamePath($idx, $node);
+    }
+  }
+
+  /**
+   * evaluate lists
+   * we are evaluating the LIs but we upvote the UL/OL
+   * elements!
+   * ________________________________________________________________
+   */
+  protected function evaluateList($idx, $node)
+  {
+    $listElems = $this->xp->query('.//*[self::li]', $node);
+    $numListElems = count($listElems);
+
+    foreach($listElems as $listElem)
+    {
+      $this->rateAncestorsMainContent($idx, $listElem);
+      $this->rateLength($idx, $listElem);
+      $this->ratePunctuation($idx, $listElem);
+    }
+
+    // trying to compensate for overrating... don't know if this is any good
+    $this->setScore($idx, $this->getScore($idx) / $numListElems);
+  }
+
+  /**
+   * render the content that we return
+   * ________________________________________________________________
+   */
+  protected function renderContent()
+  {
+    $str = '';
+    $ret = [];
+
+    for ($i = 0; $i < $this->getNodeCount(); $i++)
+    {
+      if ($this->getScore($i) >= $this->getTreshold())
+      {
+        $node = $this->getNode($i);
+        switch($node->tagName)
+        {
+          case 'ul':
+          case 'ol':
+            $listElems = $this->xp->query('.//*[self::li]', $node);
+            $str = '<'.$node->tagName.'>';
+            foreach ($listElems as $listElem)
+            {
+              $str .= '<li>'.$this->getElementAsCleanedString($listElem).'</li>';
+            }
+            $str .= '</'.$node->tagName.'>';
+            $ret[] = $str;
+          break;
+
+          default:
+            $str = $this->getElementAsCleanedString($node);
+            $ret[] = $str;
+          break;
+        }
+      }
+    }
+
+    return $ret;
+  }
+
+  /**
    * rate Empty
    * kick out empty elements
    * return TRUE if not empty.
    * return FALSE if empty.
    * _________________________________________________________________
    */
-  protected function nodeIsEmpty($idx)
+  protected function nodeIsEmpty($idx, $node)
   {
-    $node = $this->getNode($idx);
-    $str = $node->textContent;
-    $str = preg_replace('/\xc2\xa0/', ' ', $str);
-    $str = trim($str);
+    $str = $this->getNodeText($node);
 
     if ($str == '')
     {
-      $this->pElemsScore[$idx] = 0;
-      $this->statsLog[$idx]['is empty'] = 'TRUE';
+      $this->setScore($idx, 0);
+      $this->setLog($idx, 'is empty', 'TRUE');
 
       return true;
     }
 
-    $this->statsLog[$idx]['is empty'] = 'false';
+    $this->setLog($idx, 'is empty', 'false');
     return false;
   }
 
@@ -214,20 +288,10 @@ class Scraper2M extends cachedRequestM
 
     if ($isSideContent)
     {
-      $this->pElemsScore[$idx] = 0;
+      $this->setScore($idx, 0);
     }
 
     return $isSideContent;
-  }
-
-  /**
-   * api helper function
-   * ________________________________________________________________
-   */
-  protected function isNodeSideContentByIdx($idx)
-  {
-    $node = $this->getNode($idx);
-    return $this->isNodeSideContent($idx, $node);
   }
 
   /**
@@ -235,14 +299,14 @@ class Scraper2M extends cachedRequestM
    * side content
    * ________________________________________________________________
    */
-  protected function isNodeAncestorSideContent($idx)
+  protected function isNodeAncestorSideContent($idx, $node)
   {
-    $parentNodes = $this->xp->query("ancestor::*" , $this->getNode($idx));
+    $parentNodes = $this->xp->query("ancestor::*" , $node);
 
     // is one of our ancestors side content? - k.o.!
-    foreach ($parentNodes as $node)
+    foreach ($parentNodes as $pNode)
     {
-      if ($this->isNodeSideContent($idx, $node))
+      if ($this->isNodeSideContent($idx, $pNode))
       {
         return true;
       }
@@ -257,11 +321,11 @@ class Scraper2M extends cachedRequestM
    * return FALSE if not just links
    * ________________________________________________________________
    */
-  protected function nodeContentIsLinks($idx)
+  protected function nodeContentIsLinks($idx, $node)
   {
     $quotTreshold = 70;
 
-    if (($node = $this->getNode($idx)) !== null)
+    if ($node !== null)
     {
       if (  // FIXME: make the list of tags flexible
            //($node->tagName == 'li') ||
@@ -270,34 +334,34 @@ class Scraper2M extends cachedRequestM
            ($node->tagName == 'pre')
          )
       {
-        $allText = $node->textContent;
+        $allText = $this->getNodeText($node);
         $links = $this->xp->query('.//*[self::a or self::button]', $node);
 
         if (count($links) > 0)
         {
           foreach($links as $link)
           {
-            $linkText .= $link->textContent;
+            $linkText .= $this->getNodeText($link);
           }
 
           $quot = round((strlen($linkText) / strlen($allText)), 2) * 100;
 
           if ($quot >= $quotTreshold)
           {
-            $this->pElemsScore[$idx] = 0;
-            $this->statsLog[$idx]['node content is mainly links ('.$quot.'%)'] = 'TRUE';
+            $this->setScore($idx, 0);
+            $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'TRUE');
             return true;
           }
           else
           {
-            $this->statsLog[$idx]['node content is mainly links ('.$quot.'%)'] = 'false';
+            $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'false');
             return false;
           }
         }
       }
     }
 
-    $this->statsLog[$idx]['node content is mainly links (no score)'] = 'false';
+    $this->setLog($idx, 'node content is mainly links (no score)', 'false');
     return false;
   }
 
@@ -305,23 +369,23 @@ class Scraper2M extends cachedRequestM
    * upvote if ancestor(s) seem(s) to be main content
    * ________________________________________________________________
    */
-  protected function rateAncestorsMainContent($idx)
+  protected function rateAncestorsMainContent($idx, $node)
   {
     $isMainContent = false;
-    $parentNodes = $this->xp->query("ancestor::*" , $this->getNode($idx));
+    $parentNodes = $this->xp->query("ancestor::*" , $node);
 
     // Upvotes - is main content?
-    foreach ($parentNodes as $node)
+    foreach ($parentNodes as $pNode)
     {
       $isMainContent = false;
-      $isMainContent = ($this->checkTag($idx, $node, $this->mainTags)) ||
-                       ($this->checkID($idx, $node, $this->mainIDs)) ||
-                       ($this->checkClasses($idx, $node, $this->mainClasses)) ||
-                       ($this->checkAttributes($idx, $node, $this->mainAttributes));
+      $isMainContent = ($this->checkTag($idx, $pNode, $this->mainTags)) ||
+                       ($this->checkID($idx, $pNode, $this->mainIDs)) ||
+                       ($this->checkClasses($idx, $pNode, $this->mainClasses)) ||
+                       ($this->checkAttributes($idx, $pNode, $this->mainAttributes));
 
       if ($isMainContent)
       {
-        $this->pElemsScore[$idx] += $this->upvoteScore;
+        $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
       }
     }
   }
@@ -330,17 +394,16 @@ class Scraper2M extends cachedRequestM
    * rate Length
    * _________________________________________________________________
    */
-  protected function rateLength($idx)
+  protected function rateLength($idx, $node)
   {
-    $node = $this->getNode($idx);
-    if (str_word_count($node->nodeValue) >= $this->upvoteTextLength)
+    if (str_word_count($this->getNodeText($node)) >= $this->upvoteTextLength)
     {
-      $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength.' words'] = 'TRUE';
+      $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
+      $this->setLog($idx, 'has length > '.$this->upvoteTextLength.' words', 'TRUE');
     }
     else
     {
-      $this->statsLog[$idx]['has length > '.$this->upvoteTextLength.' words'] = 'false';
+      $this->setLog($idx, 'has length > '.$this->upvoteTextLength.' words', 'false');
     }
   }
 
@@ -348,27 +411,26 @@ class Scraper2M extends cachedRequestM
    * count commas
    * _________________________________________________________________
    */
-  protected function ratePunctuation($idx)
+  protected function ratePunctuation($idx, $node)
   {
-    $node = $this->getNode($idx);
-    if (substr_count($node->nodeValue, ',') >= $this->upvoteNumCommas)
+    if (substr_count($this->getNodeText($node), ',') >= $this->upvoteNumCommas)
     {
-      $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumCommas.' commas'] = 'TRUE';
+      $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
+      $this->setLog($idx, 'has more than '.$this->upvoteNumCommas.' commas', 'TRUE');
     }
     else
     {
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumCommas.' commas'] = 'false';
+      $this->setLog($idx, 'has more than '.$this->upvoteNumCommas.' commas', 'false');
     }
 
-    if (substr_count($node->nodeValue, '.') >= $this->upvoteNumDots)
+    if (substr_count($this->getNodeText($node), '.') >= $this->upvoteNumDots)
     {
-      $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumDots.' dots'] = 'TRUE';
+      $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
+      $this->setLog($idx, 'has more than '.$this->upvoteNumDots.' dots', 'TRUE');
     }
     else
     {
-      $this->statsLog[$idx]['has more than '.$this->upvoteNumDots.' dots'] = 'false';
+      $this->setLog($idx, 'has more than '.$this->upvoteNumDots.' dots', 'false');
     }
   }
 
@@ -376,19 +438,19 @@ class Scraper2M extends cachedRequestM
    * check if neighbour is also a "p"
    * _________________________________________________________________
    */
-  protected function rateNeighbours($idx)
+  protected function rateNeighbours($idx, $node)
   {
     if (
-        ($this->prevSibling($this->getNode($idx))->tagName == 'p') ||
-        ($this->nextSibling($this->getNode($idx))->tagName == 'p')
+         $this->prevSibling($node->tagName == 'p') ||
+         $this->nextSibling($node->tagName == 'p')
        )
     {
-      $this->pElemsScore[$idx] += $this->upvoteScore;
-      $this->statsLog[$idx]['previous or next sibling is also p'] = 'TRUE';
+      $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
+      $this->setLog($idx, 'previous or next sibling is also p', 'TRUE');
     }
     else
     {
-      $this->statsLog[$idx]['previous or next sibling is also p'] = 'false';
+      $this->setLog($idx, 'previous or next sibling is also p', 'false');
     }
   }
 
@@ -396,9 +458,8 @@ class Scraper2M extends cachedRequestM
    * check if neighboured elements have the same path
    * ________________________________________________________________
    */
-  protected function rateSamePath($idx)
+  protected function rateSamePath($idx, $node)
   {
-    $node = $this->getNode($idx);
     $current = $node->parentNode->getNodePath();
     $prev = $this->getNode($idx-1);
     $next = $this->getNode($idx+1);
@@ -413,12 +474,12 @@ class Scraper2M extends cachedRequestM
       {
         if ($prev == $current)
         {
-          $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['previous node has same path'] = 'TRUE';
+          $this->setScore($idx, $this->getScore($idx) + $inc);
+          $this->setLog($idx, 'previous node has same path', 'TRUE');
         }
         else
         {
-          $this->statsLog[$idx]['previous node has same path'] = 'false';
+          $this->setLog($idx, 'previous node has same path', 'false');
         }
       }
     }
@@ -430,32 +491,40 @@ class Scraper2M extends cachedRequestM
       {
         if ($next == $current)
         {
-          $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['next node has same path'] = 'TRUE';
+          $this->setScore($idx, $this->getScore($idx) + $inc);
+          $this->setLog($idx, 'next node has same path', 'TRUE');
         }
         else
         {
-          $this->statsLog[$idx]['next node has same path'] = 'false';
+          $this->setLog($idx, 'next node has same path', 'false');
         }
       }
     }
   }
 
   /**
-   * remove 0 rated nodes
+   * get score
    * ________________________________________________________________
    */
-  protected function removeZeroRated()
+  protected function getScore($idx)
   {
-    for ($i = 0; $i < $this->getNodeCount(); $i++)
-    {
-      if ((int) $this->pElemsScore[$i] == 0)
-      {
-        //unset($this->pElems[$i]); // for some reason, this can't be removed - reference on the DOM object?
-        unset($this->pElemsScore[$i]);
-      }
-    }
+    return $this->pElemsScore[$idx];
   }
+
+  /**
+   * set score
+   * ________________________________________________________________
+   */
+  protected function setScore($idx, $score)
+  {
+    $this->pElemsScore[$idx] = $score;
+  }
+
+/**
+ * ******************************************************************
+ * DOM stuff
+ * ******************************************************************
+ */
 
   /**
    * load html into doc
@@ -523,7 +592,7 @@ class Scraper2M extends cachedRequestM
    * get Meta Data
    * _________________________________________________________________
    */
-  protected function getMetadata()
+  protected function findMetadata()
   {
     $meta = [];
 
@@ -537,14 +606,14 @@ class Scraper2M extends cachedRequestM
       }
     }
 
-    return $meta;
+    $this->metadata = $meta;
   }
 
   /**
    * get PElems
    * _________________________________________________________________
    */
-  protected function setElements()
+  protected function findElements()
   {
     try
     {
@@ -567,6 +636,19 @@ class Scraper2M extends cachedRequestM
     $node = ($idx !== null) ? $this->pElems->item($idx) : null;
 
     return $node;
+  }
+
+  /**
+   * get text content of node
+   * ________________________________________________________________
+   */
+  protected function getNodeText($node)
+  {
+    $str = $node->textContent;
+    $str = preg_replace('/\xc2\xa0/', ' ', $str);
+    $str = trim($str);
+
+    return $str;
   }
 
   /**
@@ -624,7 +706,7 @@ class Scraper2M extends cachedRequestM
       if ($node->tagName == $tags[$i])
       {
         $ret = true;
-        $this->statsLog[$idx]['checking if tag name is "'.$tags[$i].'"'] = ($ret == true) ? 'TRUE' : 'false';
+        $this->setLog($idx, 'checking if tag name is "'.$tags[$i].'"', ($ret == true) ? 'TRUE' : 'false');
         break;
       }
     }
@@ -646,7 +728,7 @@ class Scraper2M extends cachedRequestM
       foreach ($idNames as $idName)
       {
         $ret = ($id == $idName) ? true : false;
-        $this->statsLog[$idx]['checking if ID is "'.$idName.'"'] = ($ret == true) ? 'TRUE' : 'false';
+        $this->setLog($idx, 'checking if ID is "'.$idName.'"', ($ret == true) ? 'TRUE' : 'false');
         if ($ret)
         {
           break;
@@ -680,7 +762,7 @@ class Scraper2M extends cachedRequestM
             $ret = true;
           }
 
-          $this->statsLog[$idx]['checking if a class with name "'.$className.'" exists'] = ($ret == true) ? 'TRUE' : 'false';
+          $this->setLog($idx, 'checking if a class with name "'.$className.'" exists', ($ret == true) ? 'TRUE' : 'false');
           if ($ret)
           {
             break 2;
@@ -707,7 +789,7 @@ class Scraper2M extends cachedRequestM
       foreach ($classNames as $className)
       {
         $ret = (strpos($classes, $className) !== false) ? true : false;
-        $this->statsLog[$idx]['checking if classes contain the string "'.$className.'"'] = ($ret == true) ? 'TRUE' : 'false';
+        $this->setLog($idx, 'checking if classes contain the string "'.$className.'"', ($ret == true) ? 'TRUE' : 'false');
         if ($ret)
         {
           break;
@@ -733,7 +815,7 @@ class Scraper2M extends cachedRequestM
       foreach ($styleStrings as $styleString)
       {
         $ret = (strpos($style, $styleString) !== false) ? true : false;
-        $this->statsLog[$idx]['checking if style attribute contains the string "'.$styleString.'"'] = ($ret == true) ? 'TRUE' : 'false';
+        $this->setLog($idx, 'checking if style attribute contains the string "'.$styleString.'"', ($ret == true) ? 'TRUE' : 'false');
         if ($ret)
         {
           break;
@@ -758,7 +840,7 @@ class Scraper2M extends cachedRequestM
       {
         $attribVal = $node->getAttribute($attributeToCheckKey);
         $ret = ($attribVal == $attributeToCheckVal) ? true : false;
-        $this->statsLog[$idx]['checking for attribute "'.$attributeToCheckKey.'" with value "'.$attributeToCheckVal.'"'] = ($ret == true) ? 'TRUE' : 'false';
+        $this->setLog($idx, 'checking for attribute "'.$attributeToCheckKey.'" with value "'.$attributeToCheckVal.'"', ($ret == true) ? 'TRUE' : 'false');
         if ($ret == true)
         {
           break;
@@ -773,7 +855,7 @@ class Scraper2M extends cachedRequestM
    * clean Element
    * _________________________________________________________________
    */
-  protected function cleanElement($element)
+  protected function getElementAsCleanedString($element)
   {
     // https://stackoverflow.com/questions/3026096/remove-all-attributes-from-an-html-tag
     $str = '';
@@ -781,7 +863,7 @@ class Scraper2M extends cachedRequestM
     if ($this->textOnly == true)
     {
       // Strip everything
-      $str = trim($element->textContent);
+      $str = $this->getNodeText($element);
     }
     else
     {
@@ -818,13 +900,23 @@ class Scraper2M extends cachedRequestM
 
     for ($i = 0; $i < $this->getNodeCount(); $i++)
     {
+      $node = $this->getNode($i);
       file_put_contents($statF,
                         (string) $i.';'.
-                        '"'.substr(trim($this->getNode($i)->textContent), 0, 75).'...";'.
-                        '"'.$this->getNode($i)->parentNode->getNodePath().'";'.
+                        '"'.substr($this->getNodeText($node), 0, 75).'...";'.
+                        '"'.$node->parentNode->getNodePath().'";'.
                         $this->statsLog[$i]['TOTAL SCORE']."\r\n",
                         FILE_APPEND);
     }
+  }
+
+  /**
+   * set Log
+   * ________________________________________________________________
+   */
+  protected function setLog($idx, $key, $val)
+  {
+    $this->statsLog[$idx][$key] = $val;
   }
 
   /**
@@ -835,10 +927,12 @@ class Scraper2M extends cachedRequestM
   {
     $file = 'scraping.html';
 
+    $meta = print_r($this->metadata, true);
     $data = print_r($this->statsLog, true);
 
     $body  = '';
     $body .= '<html><head><title>Scraper Log</title></head><body>';
+    $body .= '<pre>'.$meta.'</pre>';
     $body .= '<pre>'.$data.'</pre>';
     $body .= '</body></html>';
 
@@ -861,7 +955,7 @@ class Scraper2M extends cachedRequestM
       if ($this->pElems[$idx]->parentNode->isSameNode($this->pElems[$idx-1]->parentNode) == true)
       {
         $this->pElemsScore[$idx] += 25;
-        $this->statsLog[$idx]['previous element same parent'] = '+25';
+        $this->setLog($idx, 'previous element same parent'] = '+25';
         return;
       }
     }
@@ -871,7 +965,7 @@ class Scraper2M extends cachedRequestM
       if ($this->pElems[$idx]->parentNode->isSameNode($this->pElems[$idx+1]->parentNode) == true)
       {
         $this->pElemsScore[$idx] += 25;
-        $this->statsLog[$idx]['next element same parent'] = '+25';
+        $this->setLog($idx, 'next element same parent'] = '+25';
       }
     }
   }
@@ -898,7 +992,7 @@ class Scraper2M extends cachedRequestM
          )
       {
         $this->pElemsScore[$idx] += 25;
-        $this->statsLog[$idx]['is headline'] = '+25';
+        $this->setLog($idx, 'is headline'] = '+25';
       }
     }
   }
@@ -924,7 +1018,7 @@ class Scraper2M extends cachedRequestM
     {
       if ($this->pElems[$i]->parentNode->getNodePath() == $bestKey)
       {
-        $str = $this->cleanElement($this->pElems[$i]);
+        $str = $this->getElementAsCleanedString($this->pElems[$i]);
         $data[] = $str;
       }
     }
@@ -1059,21 +1153,21 @@ class Scraper2M extends cachedRequestM
         if ((int) $simPrevPercent >= $this->upvotePathSimilarityTreshold)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['previous node has similiar path'] = 'true';
+          $this->setLog($idx, 'previous node has similiar path'] = 'true';
         }
         else
         {
-          $this->statsLog[$idx]['previous node has similiar path'] = 'false';
+          $this->setLog($idx, 'previous node has similiar path'] = 'false';
         }
 
         if ((int) $simPrevPercent == 100)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['previous node has same path'] = 'true';
+          $this->setLog($idx, 'previous node has same path'] = 'true';
         }
         else
         {
-          $this->statsLog[$idx]['previous node has same path'] = 'false';
+          $this->setLog($idx, 'previous node has same path'] = 'false';
         }
       }
     }
@@ -1088,21 +1182,21 @@ class Scraper2M extends cachedRequestM
         if ((int) $simNextPercent >= $this->upvotePathSimilarityTreshold)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['next node has similiar path'] = 'true';
+          $this->setLog($idx, 'next node has similiar path'] = 'true';
         }
         else
         {
-          $this->statsLog[$idx]['next node has similiar path'] = 'false';
+          $this->setLog($idx, 'next node has similiar path'] = 'false';
         }
 
         if ((int) $simNextPercent == 100)
         {
           $this->pElemsScore[$idx] += $inc;
-          $this->statsLog[$idx]['next node has same path'] = 'true';
+          $this->setLog($idx, 'next node has same path'] = 'true';
         }
         else
         {
-          $this->statsLog[$idx]['next node has same path'] = 'false';
+          $this->setLog($idx, 'next node has same path'] = 'false';
         }
       }
     }
