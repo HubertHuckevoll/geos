@@ -39,7 +39,7 @@ class Scraper2M extends cachedRequestM
 
   public $koClasses = ['comment', 'comments',
                        'popmake', 'modalwindow',
-                       'navbar', 'navigation', 'lazytrigger',
+                       'navbar', 'navigation', 'lazytrigger', 'breadcrumb', 'breadcrumbs',
                        'ad-container', 'ad_container',
                        'socialbuttons',
                        'tagslist', 'taglist', 'tags-list', 'tags_list', 'tagbox', 'article-tags',
@@ -199,9 +199,12 @@ class Scraper2M extends cachedRequestM
 
     foreach($listElems as $listElem)
     {
-      $this->rateAncestorsMainContent($idx, $listElem);
-      $this->rateLength($idx, $listElem);
-      $this->ratePunctuation($idx, $listElem);
+      if ($listElem->tagName == 'li')
+      {
+        $this->rateAncestorsMainContent($idx, $listElem);
+        $this->rateLength($idx, $listElem);
+        $this->ratePunctuation($idx, $listElem);
+      }
     }
 
     // trying to compensate for overrating... don't know if this is any good
