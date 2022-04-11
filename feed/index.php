@@ -14,7 +14,7 @@ require_once('autoload.php');
 
 // Flags
 define('CACHE', true);
-define('STATS', true);
+define('STATS', false);
 //error_reporting(E_ALL);
 
 define('IMAGE_USE_NONE',   0); // no images
