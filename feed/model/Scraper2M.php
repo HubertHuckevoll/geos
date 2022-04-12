@@ -37,17 +37,18 @@ class Scraper2M extends cachedRequestM
 
   public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header', 'newsletter'];
 
-  public $koClasses = ['comment', 'comments',
+  public $koClasses = ['comment', 'comments', 'comment-form',
                        'popmake', 'modalwindow',
                        'navbar', 'navigation', 'lazytrigger', 'breadcrumb', 'breadcrumbs',
                        'ad-container', 'ad_container',
                        'socialbuttons',
+                       'aawp-disclaimer',
                        'tagslist', 'taglist', 'tags-list', 'tags_list', 'tagbox', 'article-tags',
                        'relatedtopics', 'related-topics', 'related_topics',
                        'relatedposts', 'related-posts', 'related_posts',
                        'articlesidebar', 'article-sidebar', 'article_sidebar',
                        'BorlabsCookie', 'teaser', 'hidden',
-                       'wp-caption-text', 'comment-form'];
+                       'wp-caption-text'];
 
   public $koClassesFragments = ['adblock',
                                 'cookie',
@@ -197,18 +198,25 @@ class Scraper2M extends cachedRequestM
     $listElems = $this->xp->query('.//*[self::li]', $node);
     $numListElems = count($listElems);
 
+    // rate UL/OL element
+    $this->rateAncestorsMainContent($idx, $node);
+    $this->rateSamePath($idx, $node);
+
+    // rate each list element
     foreach($listElems as $listElem)
     {
       if ($listElem->tagName == 'li')
       {
-        $this->rateAncestorsMainContent($idx, $listElem);
         $this->rateLength($idx, $listElem);
         $this->ratePunctuation($idx, $listElem);
       }
     }
 
     // trying to compensate for overrating... don't know if this is any good
-    $this->setScore($idx, $this->getScore($idx) / $numListElems);
+    $oldRate = $this->getScore($idx);
+    $newRate = $oldRate / $numListElems;
+    $this->setScore($idx, $newRate);
+    $this->setLog($idx, 'resetting the list evaluation from '.$oldRate.' to', $newRate);
   }
 
   /**
