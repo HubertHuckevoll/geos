@@ -207,16 +207,19 @@ class Scraper2M extends cachedRequestM
     {
       if ($listElem->tagName == 'li')
       {
-        $this->rateLength($idx, $listElem);
-        $this->ratePunctuation($idx, $listElem);
+        if (!$this->nodeContentIsLinks($idx, $listElem))
+        {
+          $this->rateLength($idx, $listElem);
+          $this->ratePunctuation($idx, $listElem);
+        }
       }
     }
 
     // trying to compensate for overrating... don't know if this is any good
-    $oldRate = $this->getScore($idx);
-    $newRate = $oldRate / $numListElems;
-    $this->setScore($idx, $newRate);
-    $this->setLog($idx, 'resetting the list evaluation from '.$oldRate.' to', $newRate);
+    //$oldRate = $this->getScore($idx);
+    //$newRate = $oldRate / $numListElems;
+    //$this->setScore($idx, $newRate);
+    //$this->setLog($idx, 'resetting the list evaluation from '.$oldRate.' to', $newRate);
   }
 
   /**
@@ -338,36 +341,28 @@ class Scraper2M extends cachedRequestM
 
     if ($node !== null)
     {
-      if (  // FIXME: make the list of tags flexible
-           //($node->tagName == 'li') ||
-           ($node->tagName == 'p') ||
-           ($node->tagName == 'blockquote') ||
-           ($node->tagName == 'pre')
-         )
+      $allText = $this->getNodeText($node);
+      $links = $this->xp->query('.//*[self::a or self::button]', $node);
+
+      if (count($links) > 0)
       {
-        $allText = $this->getNodeText($node);
-        $links = $this->xp->query('.//*[self::a or self::button]', $node);
-
-        if (count($links) > 0)
+        foreach($links as $link)
         {
-          foreach($links as $link)
-          {
-            $linkText .= $this->getNodeText($link);
-          }
+          $linkText .= $this->getNodeText($link);
+        }
 
-          $quot = round((strlen($linkText) / strlen($allText)), 2) * 100;
+        $quot = round((strlen($linkText) / strlen($allText)), 2) * 100;
 
-          if ($quot >= $quotTreshold)
-          {
-            $this->setScore($idx, 0);
-            $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'TRUE');
-            return true;
-          }
-          else
-          {
-            $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'false');
-            return false;
-          }
+        if ($quot >= $quotTreshold)
+        {
+          $this->setScore($idx, 0);
+          $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'TRUE');
+          return true;
+        }
+        else
+        {
+          $this->setLog($idx, 'node content is mainly links ('.$quot.'%)', 'false');
+          return false;
         }
       }
     }
