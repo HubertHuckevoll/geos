@@ -344,7 +344,10 @@ class Scraper2M extends cachedRequestM
       $allText = $this->getNodeText($node);
       $links = $this->xp->query('.//*[self::a or self::button]', $node);
 
-      if (count($links) > 0)
+      if (
+          (count($links) > 0) &&
+          (strlen($allText) > 0)
+         )
       {
         foreach($links as $link)
         {
