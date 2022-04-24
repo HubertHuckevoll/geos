@@ -219,9 +219,19 @@ class html5V extends \baseV
       $erg .= '<p style="text-align: center;"><img src="'.$article['meta']['image'].'" style="max-width: 400px;"></p>';
     }
 
-    foreach ($article['text'] as $p)
+    foreach ($article['text'] as $node)
     {
-      $erg .= '<p>'.$p.'</p>';
+      $tag = $node['tag'];
+      $str = $node['content'];
+
+      if (preg_match('/h[2-5]/', $tag))
+      {
+        $tag = 'h4';
+      }
+
+      $erg .= '<'.$tag.'>';
+      $erg .= $str;
+      $erg .= '</'.$tag.'>';
     }
 
     $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$articleFullLink.'</a>';

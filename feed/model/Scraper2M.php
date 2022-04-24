@@ -9,6 +9,7 @@ class Scraper2M extends cachedRequestM
     'meta' => [],
     'text' => []
   ];
+
   public $pElems = null;
   public $pElemsScore = null;
   public $statsLog = null;
@@ -21,21 +22,40 @@ class Scraper2M extends cachedRequestM
   public $treshold = 75; // the final frontier
 
   public $textOnly = false;
-  public $allowAmpReroute = false; // true = breaks Süddeutsche Zeitung - y tho?
+  public $allowAmpReroute = false; // be careful, this won't extract metadata and will create undefined behaviour
 
   public $metaXPath = [
-                        'title'       => '/html/head/meta[@property="og:title"]',
-                        'url'         => '/html/head/meta[@property="og:url"]',
-                        'type'        => '/html/head/meta[@property="og:type"]',
-                        'description' => '/html/head/meta[@property="og:description"]',
-                        'image'       => '/html/head/meta[@property="og:image"]'
+                        'og' =>
+                        [
+                          'title'       => '/html/head/meta[@property="og:title"]',
+                          'url'         => '/html/head/meta[@property="og:url"]',
+                          'type'        => '/html/head/meta[@property="og:type"]',
+                          'description' => '/html/head/meta[@property="og:description"]',
+                          'image'       => '/html/head/meta[@property="og:image"]'
+                        ],
+                        'twitter' =>
+                        [
+                          'title'       => '/html/head/meta[@property="twitter:title"]',
+                          'url'         => '/html/head/meta[@property="twitter:url"]',
+                          'type'        => '/html/head/meta[@property="twitter:type"]',
+                          'description' => '/html/head/meta[@property="twitter:description"]',
+                          'image'       => '/html/head/meta[@property="twitter:image"]'
+                        ],
+                        'meta' =>
+                        [
+                          'title'       => '/html/head/meta[@name="og:title"]',
+                          'url'         => '/html/head/meta[@name="og:url"]',
+                          'type'        => '/html/head/meta[@name="og:type"]',
+                          'description' => '/html/head/meta[@name="og:description"]',
+                          'image'       => '/html/head/meta[@name="og:image"]'
+                        ]
                       ];
 
   public $koTags = ['aside', 'nav', 'header', 'footer', 'dialog',
                     'form', 'script', 'noscript', 'figure', 'figcaption', 'a', 'button',
                     'amp-sidebar', 'amp-consent', 'amp-analytics', 'amp-lightbox-gallery', 'amp-skimlinks', 'amp-geo'];
 
-  public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header', 'newsletter'];
+  public $koIDs = ['sidebar', 'comment', 'comments', 'nav', 'footer', 'header', 'newsletter', 'commentSent'];
 
   public $koClasses = ['comment', 'comments', 'comment-form',
                        'popmake', 'modalwindow',
@@ -43,37 +63,36 @@ class Scraper2M extends cachedRequestM
                        'ad-container', 'ad_container',
                        'socialbuttons',
                        'aawp-disclaimer',
+                       'cookie', 'cookies',
                        'tagslist', 'taglist', 'tags-list', 'tags_list', 'tagbox', 'article-tags',
                        'relatedtopics', 'related-topics', 'related_topics',
                        'relatedposts', 'related-posts', 'related_posts',
                        'articlesidebar', 'article-sidebar', 'article_sidebar',
-                       'BorlabsCookie', 'teaser', 'hidden',
+                       'BorlabsCookie', 'hidden',
                        'wp-caption-text'];
 
   public $koClassesFragments = ['adblock',
-                                'cookie',
-                                'comment-', '-comment'];
+                                'dialog-', 'dialog_', '-dialog', '_dialog',
+                                'comment-', '-comment', 'comment_', '_comment'];
 
   public $koStyles = ['display: none;', 'display:none;',
                       'visibility: hidden;', 'visibility:hidden;',
                       'visibility: collapse;', 'visibility:collapse;'];
 
-  public $koAttributes = ['role' => 'dialog'];
+  public $koAttributes = ['role' => ['dialog'],
+                          'aria-hidden' => ['true'],
+                          'data-area' => ['paywall', 'feature-bar', 'featurebar'],
+                          'data-component' => ['FeatureBar', 'featurebar']];
 
   public $mainTags = ['article', 'main'];
   public $mainIDs = ['content', 'article', 'main'];
   public $mainClasses = ['content', 'article', 'main'];
-  public $mainAttributes = ['itemprop' => 'articleBody'];
+  public $mainAttributes = ['itemprop' => ['articleBody'],
+                            'role' => ['main']];
 
-  //public $contentXPath = '/html/body//p'; // works always
-  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre]'; // works
-  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::li]';
-  public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::ol or self::ul]';
-  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::h3 or self::h4]';
-  //public $contentXPath = '/html/body//*[self::p or self::blockquote or self::ol or self::ul or self::h3 or self::h4]';
-
+  public $contentXPath = '/html/body//*[self::p or self::blockquote or self::pre or self::h2 or self::h3 or self::h4 or self::h5 or self::ol or self::ul]';
   public $allowedTags = '<strong><em><br>';
-  //public $allowedTags = '<strong><em><br><li>';
+
   /**
    * Konstruktor
    * ________________________________________________________________
@@ -124,15 +143,13 @@ class Scraper2M extends cachedRequestM
           {
             switch ($node->tagName)
             {
-              case 'p':
-              case 'pre':
-              case 'blockquote':
-                $this->evaluateTextNode($i, $node);
-              break;
-
               case 'ul':
               case 'ol':
                 $this->evaluateList($i, $node);
+              break;
+
+              default:
+                $this->evaluateTextNode($i, $node);
               break;
             }
           }
@@ -189,8 +206,7 @@ class Scraper2M extends cachedRequestM
 
   /**
    * evaluate lists
-   * we are evaluating the LIs but we upvote the UL/OL
-   * elements!
+   * we are evaluating the LIs - but we upvote the UL/OL elements!
    * ________________________________________________________________
    */
   protected function evaluateList($idx, $node)
@@ -207,19 +223,16 @@ class Scraper2M extends cachedRequestM
     {
       if ($listElem->tagName == 'li')
       {
-        if (!$this->nodeContentIsLinks($idx, $listElem))
+        if (
+            (!$this->nodeIsEmpty($idx, $listElem)) &&
+            (!$this->nodeContentIsLinks($idx, $listElem))
+           )
         {
           $this->rateLength($idx, $listElem);
           $this->ratePunctuation($idx, $listElem);
         }
       }
     }
-
-    // trying to compensate for overrating... don't know if this is any good
-    //$oldRate = $this->getScore($idx);
-    //$newRate = $oldRate / $numListElems;
-    //$this->setScore($idx, $newRate);
-    //$this->setLog($idx, 'resetting the list evaluation from '.$oldRate.' to', $newRate);
   }
 
   /**
@@ -236,25 +249,27 @@ class Scraper2M extends cachedRequestM
       if ($this->getScore($i) >= $this->getTreshold())
       {
         $node = $this->getNode($i);
-        switch($node->tagName)
+        $tagName = $node->tagName;
+
+        switch($tagName)
         {
           case 'ul':
           case 'ol':
+            $str = '';
             $listElems = $this->xp->query('.//*[self::li]', $node);
-            $str = '<'.$node->tagName.'>';
             foreach ($listElems as $listElem)
             {
               $str .= '<li>'.$this->getElementAsCleanedString($listElem).'</li>';
             }
-            $str .= '</'.$node->tagName.'>';
-            $ret[] = $str;
           break;
 
           default:
             $str = $this->getElementAsCleanedString($node);
-            $ret[] = $str;
           break;
         }
+
+        $ret[] = ['tag'     => $tagName,
+                  'content' => $str];
       }
     }
 
@@ -605,13 +620,19 @@ class Scraper2M extends cachedRequestM
   {
     $meta = [];
 
-    foreach($this->metaXPath as $key => $xp)
+    foreach($this->metaXPath as $xpNames => $xps)
     {
-      $meta[$key] = '';
-      $elems = $this->xp->query($xp);
-      if ($elems->length > 0)
+      foreach ($xps as $key => $xp)
       {
-        $meta[$key] = $this->Utf8ToIso(trim($elems[0]->getAttribute('content')));
+        $elems = $this->xp->query($xp);
+
+        if ($elems->length > 0)
+        {
+          if (!isset($meta[$key]))
+          {
+            $meta[$key] = $this->Utf8ToIso(trim($elems[0]->getAttribute('content')));
+          }
+        }
       }
     }
 
@@ -843,17 +864,24 @@ class Scraper2M extends cachedRequestM
   {
     $ret = false;
 
-    foreach ($attributesToCheck as $attributeToCheckKey => $attributeToCheckVal)
+    foreach ($attributesToCheck as $attributeToCheckKey => $attributeToCheckValues)
     {
       if ($node->hasAttribute($attributeToCheckKey))
       {
-        $attribVal = $node->getAttribute($attributeToCheckKey);
-        $ret = ($attribVal == $attributeToCheckVal) ? true : false;
-        $this->setLog($idx, 'checking for attribute "'.$attributeToCheckKey.'" with value "'.$attributeToCheckVal.'"', ($ret == true) ? 'TRUE' : 'false');
-        if ($ret == true)
+        foreach ($attributeToCheckValues as $attributeToCheckValue)
         {
-          break;
+          $attribVal = $node->getAttribute($attributeToCheckKey);
+          $ret = ($attribVal == $attributeToCheckValue) ? true : false;
+          $this->setLog($idx, 'checking for attribute "'.$attributeToCheckKey.'" with value "'.$attributeToCheckValue.'"', ($ret == true) ? 'TRUE' : 'false');
+          if ($ret == true)
+          {
+            break;
+          }
         }
+      }
+      else
+      {
+        $this->setLog($idx, 'checking for attribute "'.$attributeToCheckKey.'"', 'attribute not set');
       }
     }
 
@@ -870,19 +898,31 @@ class Scraper2M extends cachedRequestM
     $str = '';
 
     if ($this->textOnly == true)
-    {
-      // Strip everything
+    { // Strip everything
       $str = $this->getNodeText($element);
     }
     else
-    {
-      // leave some tags intact
+    { // leave some tags intact
+
+      // remove attribute nodes
+      $attrsNodes = $this->xp->query('//@*' , $element);
+      foreach ($attrsNodes as $attrNode)
+      {
+        $attrNode->parentNode->removeAttribute($attrNode->nodeName);
+      }
+
+      // save as HTML string
       $str = trim($element->ownerDocument->saveXML($element));
+
+      // strip tags, leave some intact tho
       $str = $this->stripTags($str, $this->allowedTags);
-      $str = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/si",'<$1$2>', $str); // FIXME: remove attributes from allowed tags.
-      $str = preg_replace("/(<br\ ?\/?>)+/", '<br><br>', $str); // replace multiple line breaks with ONE "empty line"
-      $str = preg_replace("/^(<br\ ?\/?>)+/", '', $str); // remove leading line breaks - we put this in a p tag anyway
-      $str = preg_replace("/(<br\ ?\/?>)+?/", '', $str); // remove trailing line breaks - we put this in a p tag anyway
+
+      // do some replacements...
+      $str = preg_replace('/\xc2\xa0/', ' ', $str); // ... regular spaces
+      $str = preg_replace("/(<br\ ?\/?>)+/", '<br><br>', $str); // ...multiple line breaks with ONE "empty line"
+      $str = preg_replace("/^(<br\ ?\/?>)+/", '', $str); // remove leading line breaks
+      $str = preg_replace("/(<br\ ?\/?>)+?/", '', $str); // remove trailing line breaks
+      $str = preg_replace("/\s+/", ' ', $str); // ...multiple spaces with just one.
     }
 
     $str = $this->Utf8ToIso($str);
@@ -947,271 +987,6 @@ class Scraper2M extends cachedRequestM
 
     file_put_contents($file, $body);
   }
-
-  /**
-   * Outtakes
-   * ****************************************************************
-   */
-
-  /**
-   * check if same direct parent
-   * _________________________________________________________________
-
-  protected function rateParent($idx)
-  {
-    if ($this->pElems[$idx-1] != null)
-    {
-      if ($this->pElems[$idx]->parentNode->isSameNode($this->pElems[$idx-1]->parentNode) == true)
-      {
-        $this->pElemsScore[$idx] += 25;
-        $this->setLog($idx, 'previous element same parent'] = '+25';
-        return;
-      }
-    }
-
-    if ($this->pElems[$idx+1] != null)
-    {
-      if ($this->pElems[$idx]->parentNode->isSameNode($this->pElems[$idx+1]->parentNode) == true)
-      {
-        $this->pElemsScore[$idx] += 25;
-        $this->setLog($idx, 'next element same parent'] = '+25';
-      }
-    }
-  }
-
-
-  /**
-   * rate and update headline
-   * _________________________________________________________________
-
-  protected function rateHeadline($idx)
-  {
-    if (
-        ($this->pElems[$idx]->tagName == 'h3') ||
-        ($this->pElems[$idx]->tagName == 'h4')
-       )
-    {
-
-      $this->pElems[$idx]->textContent = ($this->pElems[$idx]->tagName == 'h3') ? '+++ '.$this->pElems[$idx]->textContent.' +++' : $this->pElems[$idx]->textContent;
-      $this->pElems[$idx]->textContent = ($this->pElems[$idx]->tagName == 'h4') ? '++++ '.$this->pElems[$idx]->textContent.' ++++' : $this->pElems[$idx]->textContent;
-
-      if (
-          ($this->prevSibling($this->getNode($idx))->tagName == 'p') ||
-          ($this->nextSibling($this->getNode($idx))->tagName == 'p')
-         )
-      {
-        $this->pElemsScore[$idx] += 25;
-        $this->setLog($idx, 'is headline'] = '+25';
-      }
-    }
-  }
-
-  /**
-   * final - buggy
-
-  protected function getFinalSelection()
-  {
-    $targets = array();
-    for ($i = 0; $i < count($this->pElems); $i++)
-    {
-      $xpath = $this->pElems[$i]->parentNode->getNodePath();
-      $score = pow($this->pElemsScore[$i], 2);
-      $targets[$xpath] += $score;
-    }
-
-    rsort($targets);
-    $tKeys = array_keys($targets);
-    $bestKey = $tKeys[0];
-
-    for ($i = 0; $i < count($this->pElems); $i++)
-    {
-      if ($this->pElems[$i]->parentNode->getNodePath() == $bestKey)
-      {
-        $str = $this->getElementAsCleanedString($this->pElems[$i]);
-        $data[] = $str;
-      }
-    }
-
-    return $data;
-  }
-
-  /**
-   * getSibling
-   * ________________________________________________________________
-
-  protected function getSibling($idx, $offset)
-  {
-    $node = $this->pElems[$idx];
-    $parent = $node->parentNode;
-    $children = $parent->childNodes;
-    $targetIdx = 0;
-
-    for ($i=0; $i < $children->length; $i++)
-    {
-      if ($children->item($i) == $node)
-      {
-        $targetIdx = $idx + $offset;
-        if (($targetIdx >= 0) && ($targetIdx < $children->length))
-        {
-          return $children->item($targetIdx);
-        }
-        else
-        {
-          return false;
-        }
-      }
-    }
-  }
-
-
-  /**
-   * get treshold
-   * ________________________________________________________________
-
-  protected function getTreshold()
-  {
-    /*
-    $treshold = null;
-    $factor   = null;
-    $rest     = null;
-    $pointVal = 25;
-
-    $treshold = $this->getMedian($this->pElemsScore);
-    $factor = $treshold / $pointVal;
-    $rest = $treshold % $pointVal;
-
-    $factor = ($rest == 0) ? ($factor - 1) : floor($factor);
-
-    $treshold = $factor * $pointVal;
-
-    // don't go smaller than 50...
-    $treshold = ($treshold < 50) ? 50 : $treshold;
-
-    return $treshold;
-  }
-
-  /**
-   * get median
-   * stolen
-   * ________________________________________________________________
-
-  protected function getMedian($arr)
-  {
-    //Make sure it's an array.
-    if(!is_array($arr))
-    {
-      throw new Exception('$arr must be an array!');
-    }
-
-    //If it's an empty array, return FALSE.
-    if(empty($arr))
-    {
-        return false;
-    }
-
-    sort($arr);
-
-    //Count how many elements are in the array.
-    $num = count($arr);
-
-    //Determine the middle value of the array.
-    $middleVal = floor(($num - 1) / 2);
-
-    //If the size of the array is an odd number,
-    //then the middle value is the median.
-    if($num % 2)
-    {
-      return $arr[$middleVal];
-    }
-
-    //If the size of the array is an even number, then we
-    //have to get the two middle values and get their
-    //average
-    else
-    {
-      //The $middleVal var will be the low
-      //end of the middle
-      $lowMid = $arr[$middleVal];
-      $highMid = $arr[$middleVal + 1];
-
-      //Return the average of the low and high.
-      return (($lowMid + $highMid) / 2);
-    }
-  }
-
-  protected function ratePathStructure($idx)
-  {
-    $simPrevPercent = null;
-    $simNextPercent = null;
-    $inc = 0;
-    $node = $this->getNode($idx);
-    $current = $node->parentNode->getNodePath();
-    $prev = $this->getNode($idx-1);
-    $next = $this->getNode($idx+1);
-
-    $inc = ($next === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
-    $inc = ($prev === null) ? (2 * $this->upvoteScore) : $this->upvoteScore;
-
-    if ($prev != null)
-    {
-      $prev = $prev->parentNode->getNodePath();
-      if ($prev != '')
-      {
-        similar_text($current, $prev, $simPrevPercent);
-
-        if ((int) $simPrevPercent >= $this->upvotePathSimilarityTreshold)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->setLog($idx, 'previous node has similiar path'] = 'true';
-        }
-        else
-        {
-          $this->setLog($idx, 'previous node has similiar path'] = 'false';
-        }
-
-        if ((int) $simPrevPercent == 100)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->setLog($idx, 'previous node has same path'] = 'true';
-        }
-        else
-        {
-          $this->setLog($idx, 'previous node has same path'] = 'false';
-        }
-      }
-    }
-
-    if ($next != null)
-    {
-      $next = $next->parentNode->getNodePath();
-      if ($next != '')
-      {
-        similar_text($current, $next, $simNextPercent);
-
-        if ((int) $simNextPercent >= $this->upvotePathSimilarityTreshold)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->setLog($idx, 'next node has similiar path'] = 'true';
-        }
-        else
-        {
-          $this->setLog($idx, 'next node has similiar path'] = 'false';
-        }
-
-        if ((int) $simNextPercent == 100)
-        {
-          $this->pElemsScore[$idx] += $inc;
-          $this->setLog($idx, 'next node has same path'] = 'true';
-        }
-        else
-        {
-          $this->setLog($idx, 'next node has same path'] = 'false';
-        }
-      }
-    }
-  }
-
-  */
 
 }
 

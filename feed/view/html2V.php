@@ -226,15 +226,19 @@ class html2V extends \baseV
       $erg .= '<p><img src="'.$this->imageProxy($article['meta']['image'], 400).'"></p>';
     }
 
-    for ($i=0; $i < count($article['text']); $i++)
+    foreach ($article['text'] as $node)
     {
-      $p = $article['text'][$i];
-      $erg .= '<p>';
-      $erg .= '<a name="p'.($i+1).'" href="#p'.($i+1).'">['.($i+1).']</a>';
-      $erg .= '&nbsp;';
-      $str = wordwrap($p, 70, "<br>", true);
-      $erg .= $str;
-      $erg .= '</p>';
+      $tag = $node['tag'];
+      $str = $node['content'];
+
+      if (preg_match('/h[2-5]/', $tag))
+      {
+        $tag = 'h4';
+      }
+
+      $erg .= '<'.$tag.'>';
+      $erg .= wordwrap($str, 70, "<br>", true);
+      $erg .= '</'.$tag.'>';
     }
 
     $erg .= '<hr>';

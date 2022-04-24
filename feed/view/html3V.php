@@ -241,14 +241,19 @@ class html3V extends \baseV
       $erg .= '<center><img src="'.$this->imageProxy($article['meta']['image'], 400).'"></center>';
     }
 
-    for ($i=0; $i < count($article['text']); $i++)
+    foreach ($article['text'] as $node)
     {
-      $p = $article['text'][$i];
-      $erg .= '<p>';
-      $erg .= '<a name="p'.($i+1).'" href="#p'.($i+1).'">['.($i+1).']</a>';
-      $erg .= '&nbsp;';
-      $erg .= $p;
-      $erg .= '</p>';
+      $tag = $node['tag'];
+      $str = $node['content'];
+
+      if (preg_match('/h[2-5]/', $tag))
+      {
+        $tag = 'h4';
+      }
+
+      $erg .= '<'.$tag.'>';
+      $erg .= $str;
+      $erg .= '</'.$tag.'>';
     }
 
     $erg .= '<hr>';
