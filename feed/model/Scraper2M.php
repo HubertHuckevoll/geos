@@ -85,8 +85,8 @@ class Scraper2M extends cachedRequestM
                           'data-component' => ['FeatureBar', 'featurebar']];
 
   public $mainTags = ['article', 'main'];
-  public $mainIDs = ['content', 'article', 'main'];
-  public $mainClasses = ['content', 'article', 'main'];
+  public $mainIDs = ['content', 'article', 'main', 'article-content', 'article-body'];
+  public $mainClasses = ['content', 'article', 'main', 'article-content', 'article-body'];
   public $mainAttributes = ['itemprop' => ['articleBody'],
                             'role' => ['main']];
 
@@ -352,6 +352,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function nodeContentIsLinks($idx, $node)
   {
+    $linkText = '';
     $quotTreshold = 70;
 
     if ($node !== null)
@@ -470,11 +471,11 @@ class Scraper2M extends cachedRequestM
        )
     {
       $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
-      $this->setLog($idx, 'previous or next sibling is also p', 'TRUE');
+      $this->setLog($idx, 'previous or next sibling is a "p"', 'TRUE');
     }
     else
     {
-      $this->setLog($idx, 'previous or next sibling is also p', 'false');
+      $this->setLog($idx, 'previous or next sibling is a "p"', 'false');
     }
   }
 
