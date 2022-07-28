@@ -171,7 +171,8 @@ class Scraper2M extends cachedRequestM
         {
           $node = $this->getNode($i);
           $str = $this->getElementAsCleanedString($node);
-          $data['text'][] = $str;
+          $data['text'][] = ['tag' => 'p',
+                             'content' => $str];
         }
       }
 
@@ -465,9 +466,12 @@ class Scraper2M extends cachedRequestM
    */
   protected function rateNeighbours($idx, $node)
   {
+    $ps = $this->prevSibling($node);
+    $ns = $this->nextSibling($node);
+
     if (
-         $this->prevSibling($node->tagName == 'p') ||
-         $this->nextSibling($node->tagName == 'p')
+         (($ps != null) && ($ps->tagName == 'p')) ||
+         (($ns != null) && ($ns->tagName == 'p'))
        )
     {
       $this->setScore($idx, $this->getScore($idx) + $this->upvoteScore);
@@ -533,7 +537,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function getScore($idx)
   {
-    return $this->pElemsScore[$idx];
+    return $this->pElemsScore[$idx] ?? 0;
   }
 
   /**
@@ -697,7 +701,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function nextSibling($node)
   {
-    while ($node && ($node = $node->nextSibling))
+    while (isset($node) && ($node = $node->nextSibling))
     {
       if ($node instanceof DOMElement)
       {
@@ -713,7 +717,7 @@ class Scraper2M extends cachedRequestM
    */
   protected function prevSibling($node)
   {
-    while ($node && ($node = $node->previousSibling))
+    while (isset($node) && ($node = $node->previousSibling))
     {
       if ($node instanceof DOMElement)
       {

@@ -6,7 +6,7 @@ class loginV extends \view
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage(string $viewFunc = '') : void
+  public function drawPage(string $viewFunc = ''): void
   {
     $h2sel = ($this->stateParams['ui'] == 'html2V') ? ' selected' : '';
     $h3sel = ($this->stateParams['ui'] == 'html3V') ? ' selected' : '';
@@ -21,11 +21,12 @@ class loginV extends \view
     $imgUse2 = ($this->stateParams['iU'] == '2') ? ' selected' : '';
     $imgUse3 = ($this->stateParams['iU'] == '3') ? ' selected' : '';
 
+    $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">'.
             '<html>'.
             '<head>'.
               '<title>'.$this->getData('appName').' - Setup</title>'.
-              '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'. //this must also be set in the header!                '<title>'.$this->getData('appName').'/setup</title>'.
+              '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'. //this must also be set in the header!
             '</head>'.
             '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">'.
             '<h1>'.'&nbsp;'.$this->getData('appName').' - Setup</h1>';

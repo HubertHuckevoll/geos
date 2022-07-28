@@ -41,7 +41,10 @@ class tsvM extends cachedRequestM
           $lineArr = str_getcsv($line, "\t"); // parse the items in rows
           for ($i = 0; $i < count($keys); $i++)
           {
-            $entry[$keys[$i]] = $this->Utf8ToIso($lineArr[$i]);
+            if (isset($lineArr[$i]))
+            {
+              $entry[$keys[$i]] = $this->Utf8ToIso($lineArr[$i]);
+            }
           }
 
           $table['data'][] = $entry;

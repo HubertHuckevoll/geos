@@ -6,7 +6,7 @@ class html3V extends \baseV
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage(string $viewFunc = '') : void
+  public function drawPage(string $viewFunc = ''): void
   {
     $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">';
@@ -188,7 +188,7 @@ class html3V extends \baseV
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
         {
-          if ($article['image'] != '')
+          if (isset($article['image']))
           {
             $erg .= '<p><img src="'.$this->imageProxy($article['image'], 128).'"></p>';
           }
@@ -199,10 +199,8 @@ class html3V extends \baseV
         $date = $article['date'];
         if ($date != '')
         {
-          $date = date_parse($date);
-          $date = strtotime($date['day'].'.'.$date['month'].'.'.$date['year']);
-          $date = strftime('%A, %B %e, %Y', $date);
-          $erg .= '&nbsp;<i>('.$date.')</i>';
+          $dt = new DateTime($date);
+          $erg .= '&nbsp;<i>('.$dt->format(DATE_RSS).')</i>';
         }
         $erg .= '</p>';
 

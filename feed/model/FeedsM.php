@@ -318,10 +318,10 @@ class FeedsM extends cachedRequestM
   {
     if (is_array($str))
     {
-      $str = implode($str, ' ');
+      $str = implode(' ', $str);
     }
 
-    return $this->Utf8ToIsoHtml(trim($this->stripTags((string) $str)));
+    return $this->Utf8ToIsoHtml(trim($this->stripTags($str)));
   }
 
   /**
@@ -332,7 +332,7 @@ class FeedsM extends cachedRequestM
   {
     if (is_array($str))
     {
-      $str = implode($str, ' ');
+      $str = implode(' ', $str);
     }
 
     return $this->Utf8ToIso(trim($this->stripTags((string) $str)));

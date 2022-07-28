@@ -19,9 +19,6 @@ function getReqVar($varName, $stripTags = true)
     if ($stripTags == true) {
       $var = strip_tags($var);
     }
-    if (get_magic_quotes_gpc() == true) {
-      $var = stripslashes($var);
-    }
     return $var;
   }
 
@@ -224,36 +221,6 @@ function getVer()
 {
   $fnames = glob("*.ver");
   return basename($fnames[0], '.ver');
-}
-
-/**
- * Versuche, Mobilbrowser zu erkennen - discouraged, use
- * CSS instead
- * ____________________________________________________________________
- */
-function isMobile()
-{
-  if (defined('FORCE_MOBILE') && (FORCE_MOBILE == true)) {
-    return true;
-  }
-
-  if (defined('FORCE_DESKTOP') && (FORCE_DESKTOP == true)) {
-    return false;
-  }
-
-  $agents = array(
-    'android','webos','iphone','ipad','ipod','blackberry','iemobile','opera mini'
-  );
-
-  // Prüfen der Browserkennung
-  foreach ($agents as $agent) {
-    if (isset($_SERVER["HTTP_USER_AGENT"])
-        && strpos(strtolower($_SERVER["HTTP_USER_AGENT"]), strtolower($agent)) !== false)
-    {
-      return true;
-    }
-  }
-  return false;
 }
 
 /**

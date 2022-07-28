@@ -9,7 +9,7 @@ class view
    * Konstruktor
    * ________________________________________________________________
    */
-	function __construct()
+	public function __construct()
 	{
 	  //setlocale(LC_ALL, 'de_DE');
 	}
@@ -38,7 +38,7 @@ class view
    */
   public function getData(string $key)
   {
-    return $this->data[$key];
+    return $this->data[$key] ?? '';
   }
 
   /**
@@ -76,7 +76,7 @@ class view
    * and prepend and append the rest of the HTML there
    * _________________________________________________________________
    */
-  public function exec(string $viewFunc) : string
+  public function exec(string $viewFunc): string
   {
     if (method_exists($this, $viewFunc))
     {
@@ -93,7 +93,7 @@ class view
    * prepend and append boilerplate html
    * _________________________________________________________________
    */
-  public function drawPage(string $viewFunc = '') : void
+  public function drawPage(string $viewFunc = ''): void
   {
     // html / head / body / sidebar...
     echo $this->exec($viewFunc);
@@ -104,7 +104,7 @@ class view
    * error version for single class views
    * ________________________________________________________________
    */
-  public function drawErrorPage(Exception $e) : void
+  public function drawErrorPage(Exception $e): void
   {
     echo $e->getMessage();
   }
@@ -114,7 +114,7 @@ class view
    * pass get params, link text and attributes
    * ________________________________________________________________
    */
-  public function link(array $paramsA, string $textS, array $attrA = []) : string
+  public function link(array $paramsA, string $textS, array $attrA = []): string
   {
     $erg = '';
     $attrs = '';
@@ -138,7 +138,7 @@ class view
    * add state params to every request
    * ___________________________________________________________________
    */
-  public function href(array $paramsA) : string
+  public function href(array $paramsA): string
   {
     $paramsA = array_merge($paramsA, $this->stateParams);
 
@@ -167,7 +167,7 @@ class view
    * image proxy
    * ________________________________________________________________
    */
-  public function imageProxy(string $img, int $newWidth) : string
+  public function imageProxy(string $img, int $newWidth): string
   {
     $img = 'http://'.$_SERVER['HTTP_HOST'].'/geos/tools/2gif.php?file='.urlencode($img).'&width='.(string) $newWidth;
     return $img;
