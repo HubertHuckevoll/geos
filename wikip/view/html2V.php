@@ -2,63 +2,19 @@
 
 class html2V extends \view
 {
-  /**
-   * draw page
-   * _____________________________________________________________________
-   */
-  public function drawPage(string $viewFunc = '') : void
-  {
-    $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
-    $erg .= '<html>';
-
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
-    $erg .= '</head>';
-
-    $erg .= '<body>';
-    $erg .= '<h1>'.$this->getData('appName').'</h1>';
-    $erg .= '<h3>'.$this->getData('headline').'</h3>';
-    $erg .= $this->exec($viewFunc);
-    $erg .= '</body>';
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
-  public function drawErrorPage(Exception $e) : void
-  {
-    $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
-    $erg .= '<html>';
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
-    $erg .= '</head>';
-
-    $erg .= '<body>';
-    $erg .= '<h1>'.$this->getData('appName').'</h1>';
-    $erg .= '<h3>Error:</h3>';
-    $erg .= '<p>'.$e->getMessage().'</p>';
-    $erg .= '</body>';
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
 
   /**
    * Index
    * _________________________________________________________________
    */
-  public function index()
+  public function drawIndex(): void
   {
     $term = $this->getData('term');
     $results = (array) $this->getData('results');
     $locs = $this->getData('locs');
     $erg = '';
+
+    $erg .= $this->openPage();
 
     $erg .= '<p>'.
               '<a href="index.php?ui=html4V">(Click here for the HTML4 version)</a>'.
@@ -91,22 +47,28 @@ class html2V extends \view
     {
       foreach ($results as $result)
       {
-        $erg .= '<p>';
-        $erg .= $this->link(['hook' => 'fulltext', 'title' => $result['title']], $result['title']);
-        $erg .= '<br>';
-        $erg .= '...'.$result['snippet'].'...';
-        $erg .= '</p>';
+        if (isset($result['title']) && isset($result['snippet']))
+        {
+          $erg .= '<p>';
+          $erg .= $this->link(['hook' => 'fulltext', 'title' => $result['title']], $result['title']);
+          $erg .= '<br>';
+          $erg .= '...'.$result['snippet'].'...';
+          $erg .= '</p>';
+        }
       }
     }
 
-    return $erg;
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Preview
    * _________________________________________________________________
    */
-  public function fulltext()
+  public function drawFulltext(): void
   {
     $fulltext = $this->getData('fulltext');
     $numImages = (int) count($this->getData('images'));
@@ -114,6 +76,7 @@ class html2V extends \view
     $link = 'https://'.$this->getData('loc').'.wikipedia.org/wiki/'.str_replace(' ', '_', $title);
     $erg = '';
 
+    $erg .= $this->openPage();
     $erg .= '<h3>'.$title.'</h3>';
 
     if ($numImages != 0)
@@ -131,14 +94,17 @@ class html2V extends \view
     $erg .= '(Source:&nbsp;<a href="'.$link.'" target="_blank">'.$link.'</a>)';
     $erg .= '</p>';
 
-    return $erg;
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Media
    * _________________________________________________________________
    */
-  public function media()
+  public function drawMedia(): void
   {
     $images = (array) $this->getData('images');
     $imgCount = count($images);
@@ -148,6 +114,8 @@ class html2V extends \view
     $page = (int) ($this->getData('page') != false) ? $this->getData('page') : 0;
     $numPages = 0;
     $erg = '';
+
+    $erg .= $this->openPage();
 
     $erg .= '<h3>Images for "'.$this->getData('title').'"</h3>';
 
@@ -193,6 +161,70 @@ class html2V extends \view
     {
       $erg .= '<p>No files.</p>';
     }
+
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * draw error page
+   * ________________________________________________________________
+   */
+  public function drawErrorPage(Exception $e): void
+  {
+    $erg  = '';
+    $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
+    $erg .= '<html>';
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '</head>';
+
+    $erg .= '<body>';
+    $erg .= '<h1>'.$this->getData('appName').'</h1>';
+    $erg .= '<h3>Error:</h3>';
+    $erg .= '<p>'.$e->getMessage().'</p>';
+    $erg .= '</body>';
+
+    $erg .= '</html>';
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * open page
+   * ________________________________________________________________
+   */
+  protected function openPage(): string
+  {
+    $erg  = '';
+    $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
+    $erg .= '<html>';
+
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '</head>';
+
+    $erg .= '<body>';
+    $erg .= '<h1>'.$this->getData('appName').'</h1>';
+    $erg .= '<h3>'.$this->getData('headline').'</h3>';
+
+    return $erg;
+  }
+
+  /**
+   * close Page
+   * ________________________________________________________________
+   */
+  protected function closePage(): string
+  {
+    $erg  = '';
+    $erg .= '</body>';
+    $erg .= '</html>';
 
     return $erg;
   }

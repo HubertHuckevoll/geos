@@ -9,7 +9,7 @@ class model
    * fetch something
    * _________________________________________________________________
    */
-  public function grab($url)
+  public function grab(string $url): string
   {
     $ch = null;
 
@@ -54,7 +54,7 @@ class model
    * fetch json
    * _________________________________________________________________
    */
-  public function grabJson($url)
+  public function grabJson(string $url): array
   {
     $json = json_decode($this->grab($url), true);
     return $json;
@@ -65,7 +65,7 @@ class model
    * i should have had this years ago
    * _________________________________________________________________
    */
-  protected function Utf8ToIso($str)
+  protected function Utf8ToIso(string $str): string
   {
     $max = 3;
     $i = 0;
@@ -86,7 +86,7 @@ class model
    * convert utf8 to iso and html entities
    * _________________________________________________________________
    */
-  protected function Utf8ToIsoHtml($str)
+  protected function Utf8ToIsoHtml(string $str): string
   {
     $str = $this->Utf8ToIso($str);
     $str = htmlentities($str, ENT_SUBSTITUTE | ENT_HTML401, 'ISO-8859-1', false);
@@ -98,7 +98,7 @@ class model
    * sanitize URLs
    * ________________________________________________________________
    */
-  protected function sanitizeURL($url)
+  protected function sanitizeURL(string $url): string
   {
     $path = parse_url($url, PHP_URL_PATH);
     $encoded_path = array_map('urlencode', explode('/', $path));
@@ -111,7 +111,7 @@ class model
    * strip tags but replace with space
    * ________________________________________________________________
    */
-  function stripTags($string, $allowable_tags = null)
+  function stripTags(string $string, array|string|null $allowable_tags = null)
   {
     $string = str_replace('<', ' <', $string);
     $string = strip_tags($string, $allowable_tags);

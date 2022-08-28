@@ -21,7 +21,7 @@ class cachedRequestM extends model
    * fetch a page / a feed... and cache it.
    * _________________________________________________________________
    */
-  public function grab($url)
+  public function grab(string $url): string
   {
     $fname = md5($url).'.tmp';
     $cacheFile = $this->cacheDir.$fname;
@@ -77,7 +77,7 @@ class cachedRequestM extends model
    * clear cache every once in a while
    * __________________________________________________________________
    */
-  protected function clearCache()
+  protected function clearCache(): void
   {
     $cacheFlagFile = $this->cacheDir.'cache_cleared_flag.tmp';
     $fdate = (int) 0;

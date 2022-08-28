@@ -66,7 +66,7 @@ class app extends control
    * shows search results as well
    * _________________________________________________________________
    */
-  public function index()
+  public function index(): void
   {
     try
     {
@@ -82,7 +82,7 @@ class app extends control
         $this->view->setData('results', $data);
       }
 
-      $this->view->drawPage('index');
+      $this->view->drawIndex();
     }
     catch(Exception $e)
     {
@@ -94,7 +94,7 @@ class app extends control
    * Fulltext
    * _________________________________________________________________
    */
-  public function fulltext()
+  public function fulltext(): void
   {
     try
     {
@@ -110,7 +110,7 @@ class app extends control
       $this->view->setData('fulltext', $fulltext);
       $this->view->setData('images', $images);
 
-      $this->view->drawPage('fulltext');
+      $this->view->drawFulltext();
     }
     catch(Exception $e)
     {
@@ -122,7 +122,7 @@ class app extends control
    * fetch images
    * _________________________________________________________________
    */
-  public function media()
+  public function media(): void
   {
     try
     {
@@ -135,7 +135,7 @@ class app extends control
       $images = $this->wp->media($title);
       $this->view->setData('images', $images);
 
-      $this->view->drawPage('media');
+      $this->view->drawMedia();
     }
     catch(Exception $e)
     {

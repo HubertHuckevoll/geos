@@ -18,16 +18,17 @@ class GSheetsM extends cachedRequestM
    * fetch a GDocs table
    * ________________________________________________________________
    */
-  public function fetchTable($gsheet)
+  public function fetchTable(string $gsheet): array
   {
     $xp = null;
     $dom = null;
-    $data = array();
+    $data = [];
     $nodes = null;
     $node = null;
-    $tables = array();
-    $entry = array();
+    $tables = [];
+    $entry = [];
     $html = false;
+    $colNames = [];
 
     try
     {
@@ -84,7 +85,7 @@ class GSheetsM extends cachedRequestM
             {
               if ($i == 0)
               {
-                $colNames = array();
+                $colNames = [];
                 $tds = $xp->query(".//td", $node);
                 foreach ($tds as $td)
                 {
@@ -93,7 +94,7 @@ class GSheetsM extends cachedRequestM
               }
               else
               {
-                $lineA = array();
+                $lineA = [];
                 for ($z = 0; $z < count($colNames); $z++)
                 {
                   $lineA[$colNames[$z]] = $this->Utf8ToIso(trim($node->childNodes->item($z+1)->nodeValue));

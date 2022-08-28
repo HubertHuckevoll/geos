@@ -4,69 +4,12 @@ class html4V extends \view
 {
 
   /**
-   * draw page
+   * draw frameset
    * _____________________________________________________________________
    */
-  public function drawPage(string $viewFunc = '') : void
+  public function drawFrameset(): void
   {
-    $erg = '';
-    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
-    $erg .= '<html>';
-
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
-    $erg .= '</head>';
-
-    $erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
-    $erg .= '<font face="'.$this->getData('font').'">';
-    $erg .= $this->exec($viewFunc);
-    $erg .= '</font>';
-    $erg .= '</body>';
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
-  /**
-   * draw error page
-   * _____________________________________________________________________
-   */
-  public function drawErrorPage(Exception $e) : void
-  {
-    $erg = '';
-    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
-    $erg .= '<html>';
-
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'</title>';
-    $erg .= '</head>';
-
-    $erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
-    $erg .= '<font face="'.$this->getData('font').'">';
-    $erg .= '<h3>Error:</h3>';
-    $erg .= '<p>';
-    $erg .= $e->getMessage();
-    $erg .= '</font>';
-    $erg .= '</p>';
-    $erg .= '</body>';
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
-  /**
-   * frameset
-   * NOT called via "draw"!
-   * _____________________________________________________________________
-   */
-  public function drawFrameset()
-  {
+    $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">'.
             '<html>'.
               '<head>'.
@@ -91,13 +34,15 @@ class html4V extends \view
    * Preview
    * _________________________________________________________________
    */
-  public function fulltext()
+  public function drawFulltext(): void
   {
     $fulltext = $this->getData('fulltext');
     $numImages = (int) count($this->getData('images'));
     $title = $this->getData('title');
     $link = 'https://'.$this->getData('loc').'.wikipedia.org/wiki/'.str_replace(' ', '_', $title);
     $erg = '';
+
+    $erg .= $this->openPage();
 
     $erg .= '<h3>'.$title.'</h3>';
 
@@ -122,19 +67,24 @@ class html4V extends \view
     $erg .= '</font>';
     $erg .= '</td></tr></table>';
 
-    return $erg;
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Index
    * _________________________________________________________________
    */
-  public function index()
+  public function drawIndex(): void
   {
     $term = $this->getData('term');
     $results = (array) $this->getData('results');
     $locs = $this->getData('locs');
     $erg = '';
+
+    $erg .= $this->openPage();
 
     $erg .= '<h3>'.$this->getData('appName').'</h3>';
 
@@ -174,17 +124,19 @@ class html4V extends \view
 
     if (count($results) > 0)
     {
-
       $erg .= '<tr><td>';
       $erg .= '<font face="'.$this->getData('font').'">';
 
       foreach ($results as $result)
       {
-        $erg .= '<p>';
-        $erg .= $this->link(['hook' => 'fulltext', 'title' => $result['title']], $result['title'], ['target' => 'middle']);
-        $erg .= '<br>';
-        $erg .= '...'.$result['snippet'].'...';
-        $erg .= '</p>';
+        if (isset($result['title']) && isset($result['snippet']))
+        {
+          $erg .= '<p>';
+          $erg .= $this->link(['hook' => 'fulltext', 'title' => $result['title']], $result['title'], ['target' => 'middle']);
+          $erg .= '<br>';
+          $erg .= '...'.$result['snippet'].'...';
+          $erg .= '</p>';
+        }
       }
 
       $erg .= '</font>';
@@ -193,14 +145,17 @@ class html4V extends \view
 
     $erg .= '</table>';
 
-    return $erg;
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Media
    * _________________________________________________________________
    */
-  public function media()
+  public function drawMedia(): void
   {
     $images = (array) $this->getData('images');
     $imgCount = count($images);
@@ -210,6 +165,8 @@ class html4V extends \view
     $page = (int) ($this->getData('page') != false) ? $this->getData('page') : 0;
     $numPages = 0;
     $erg = '';
+
+    $erg  = $this->openPage();
 
     $erg .= '<h3>Images for "'.$this->getData('title').'"</h3>';
 
@@ -261,6 +218,74 @@ class html4V extends \view
 
     $erg .= '</font>';
     $erg .= '</td></tr></table>';
+
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * draw error page
+   * ________________________________________________________________
+   */
+  public function drawErrorPage(Exception $e): void
+  {
+    $erg = '';
+    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
+    $erg .= '<html>';
+
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '</head>';
+
+    $erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
+    $erg .= '<font face="'.$this->getData('font').'">';
+    $erg .= '<h3>Error:</h3>';
+    $erg .= '<p>';
+    $erg .= $e->getMessage();
+    $erg .= '</font>';
+    $erg .= '</p>';
+    $erg .= '</body>';
+
+    $erg .= '</html>';
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * open page
+   * _____________________________________________________________________
+   */
+  protected function openPage(): string
+  {
+    $erg = '';
+    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
+    $erg .= '<html>';
+
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'</title>';
+    $erg .= '</head>';
+
+    $erg .= '<body bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF">';
+    $erg .= '<font face="'.$this->getData('font').'">';
+
+    return $erg;
+  }
+
+  /**
+   * close Page
+   * ________________________________________________________________
+   */
+  protected function closePage(): string
+  {
+    $erg  = '';
+    $erg .= '</font>';
+    $erg .= '</body>';
+    $erg .= '</html>';
 
     return $erg;
   }

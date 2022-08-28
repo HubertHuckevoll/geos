@@ -9,7 +9,7 @@ class CatsM extends model
    * Konstruktor
    * ________________________________________________________________
    */
-  public function __construct($tsvF)
+  public function __construct(string $tsvF)
   {
     $this->tsvF = $tsvF;
 
@@ -21,7 +21,7 @@ class CatsM extends model
    * get TSV data
    * ________________________________________________________________
    */
-  public function getTableData()
+  public function getTableData(): array
   {
     return $this->tsvData['data'];
   }
@@ -30,7 +30,7 @@ class CatsM extends model
    * Table Name
    * ________________________________________________________________
    */
-  public function getTableName()
+  public function getTableName(): string
   {
     return $this->tsvData['name'];
   }
@@ -39,7 +39,7 @@ class CatsM extends model
    * get Category names
    * ________________________________________________________________
    */
-  public function getCatNames()
+  public function getCatNames(): array
   {
     $catArray = [];
 
@@ -58,7 +58,7 @@ class CatsM extends model
    * get category name for idx
    * ________________________________________________________________
    */
-  public function getCatName($catIdx)
+  public function getCatName($catIdx): string
   {
     $cats = $this->getCatNames();
     $cat = $cats[$catIdx];
@@ -70,7 +70,7 @@ class CatsM extends model
    * get feeds for category index
    * ________________________________________________________________
    */
-  public function getFeedsForCatIdx($catIdx)
+  public function getFeedsForCatIdx($catIdx): array
   {
     $cat = $this->getCatName($catIdx);
 

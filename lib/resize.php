@@ -13,7 +13,7 @@ class resize
    * but adopted to our needs
    * _________________________________________________________________
    */
-  public function smartResizeImage($file, $width = 0, $height = 0)
+  public function smartResizeImage(string $file, int $width = 0, int $height = 0): mixed
   {
     $image = null;
     $image_resized = false;
@@ -57,6 +57,8 @@ class resize
         case 'image/gif':
           $image_resized = imagecreatetruecolor($final_width, $final_height);
 
+          $trnprt_indx        = 0;
+          $trnprt_color       = [];
           $transparency       = imagecolortransparent($image);
           $transparent_color  = imagecolorsforindex($image, $trnprt_indx);
           $transparency       = imagecolorallocate($image_resized, $trnprt_color['red'], $trnprt_color['green'], $trnprt_color['blue']);
@@ -89,7 +91,7 @@ class resize
    * get image
    * ________________________________________________________________
    */
-  protected function getImage($file)
+  protected function getImage(string $file): mixed
   {
     $ftype = '';
     $rawImage = '';

@@ -17,7 +17,7 @@ class tsvM extends cachedRequestM
    * fetch a TSV table
    * ________________________________________________________________
    */
-  public function fetchTable($tsvURL)
+  public function fetchTable(string $tsvURL): array
   {
     $tableName = $this->getTableName($tsvURL);
     $table = [];
@@ -63,7 +63,7 @@ class tsvM extends cachedRequestM
     }
   }
 
-  public function getTableName($tsvURL)
+  public function getTableName(string $tsvURL): string
   {
     $tableName = substr($tsvURL, strrpos($tsvURL, '/') + 1);
     return $tableName;

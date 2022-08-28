@@ -106,7 +106,7 @@ class Scraper2M extends cachedRequestM
    * fetchContent
    * ________________________________________________________________
    */
-  public function fetchContent($url, $xpath = '')
+  public function fetchContent(string $url, string $xpath = ''): array
   {
     $node = null;
     $data = [
@@ -193,7 +193,7 @@ class Scraper2M extends cachedRequestM
    * evaluate p nodes and the like
    * ________________________________________________________________
    */
-  protected function evaluateTextNode($idx, $node)
+  protected function evaluateTextNode(int $idx, DOMNode $node)
   {
     if (!$this->nodeContentIsLinks($idx, $node))
     {

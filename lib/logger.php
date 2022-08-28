@@ -9,7 +9,7 @@ class logger
    * debug variable in html file
    * ________________________________________________________________
    */
-  public static function vh(...$variables)
+  public static function vh(...$variables): void
   {
     self::startSession();
 
@@ -30,7 +30,7 @@ class logger
    * debug variable in text file
    * ________________________________________________________________
    */
-  public static function vt(...$variables)
+  public static function vt(...$variables): void
   {
     self::startSession();
 
@@ -51,7 +51,7 @@ class logger
    * log calling stack HTML
    * ________________________________________________________________
    */
-  public static function sh()
+  public static function sh(): void
   {
     self::startSession();
 
@@ -65,7 +65,7 @@ class logger
    * log calling stack TEXT
    * ________________________________________________________________
    */
-  public static function st()
+  public static function st(): void
   {
     self::startSession();
 
@@ -83,7 +83,7 @@ class logger
    * log HTML
    * ________________________________________________________________
    */
-  protected static function drawVarHTML($file, $line, $func, $vars)
+  protected static function drawVarHTML($file, $line, $func, $vars): void
   {
     $out = '';
 
@@ -105,7 +105,7 @@ class logger
    * log text file
    * ________________________________________________________________
    */
-  protected static function drawVarText($file, $line, $func, $vars)
+  protected static function drawVarText($file, $line, $func, $vars): void
   {
     $out = '';
     $char = '~';
@@ -129,11 +129,12 @@ class logger
    * draw stack HTML
    * __________________________________________________________________
    */
-  public static function drawStackHTML($callerInfo)
+  public static function drawStackHTML($callerInfo): void
   {
     $i = 0;
     $last = count($callerInfo) - 1;
 
+    $out  = '';
     $out .= '<div><strong>Calling Stack</strong></div>'.
             '<div style="border: 1px solid #DDD; padding: 5px; margin-bottom: 5px;">';
 
@@ -155,7 +156,7 @@ class logger
    * draw stack Text
    * __________________________________________________________________
    */
-  public static function drawStackText($callerInfo)
+  public static function drawStackText($callerInfo): void
   {
     $varInfo = '';
 
@@ -184,7 +185,7 @@ class logger
    * start debugging sessions
    * ________________________________________________________________
    */
-  public static function startSession()
+  public static function startSession(): void
   {
     if (!defined('DEBUG_FLAG'))
     {
@@ -198,7 +199,7 @@ class logger
    * assign variables
    * ________________________________________________________________
    */
-  protected static function assignVars($curFunc, $debugLine, $variables)
+  protected static function assignVars($curFunc, $debugLine, $variables): array
   {
     preg_match('/.*'.$curFunc.'\((.*)\).*/', $debugLine, $varNames);
 
@@ -216,7 +217,7 @@ class logger
    * write HTML file
    * ________________________________________________________________
    */
-  public static function writeHFile($varInfo)
+  public static function writeHFile($varInfo): void
   {
     $body = '';
 
@@ -240,7 +241,7 @@ class logger
    * log text file
    * ________________________________________________________________
    */
-  protected static function writeTFile($var)
+  protected static function writeTFile($var): void
   {
     $body = @file_get_contents(self::TFILE);
 

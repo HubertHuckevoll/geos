@@ -18,7 +18,7 @@ class view
    * add Data From Array
    * _________________________________________________________________
    */
-  public function addDataFromArray(array $data)
+  public function addDataFromArray(array $data): void
   {
     $this->data = array_merge($this->data, (array) $data);
   }
@@ -27,7 +27,7 @@ class view
    * set data key
    * _________________________________________________________________
    */
-  public function setData(string $key, $val)
+  public function setData(string $key, mixed $val): void
   {
     $this->data[$key] = $val;
   }
@@ -36,7 +36,7 @@ class view
    * get data key
    * _________________________________________________________________
    */
-  public function getData(string $key)
+  public function getData(string $key): mixed
   {
     return $this->data[$key] ?? '';
   }
@@ -45,7 +45,7 @@ class view
    * reset data
    * _________________________________________________________________
    */
-  public function resetData()
+  public function resetData(): void
   {
     $this->data = [];  // model data
   }
@@ -54,7 +54,7 @@ class view
    * render debugging fragment
    * _________________________________________________________________
    */
-  public function debugVars()
+  public function debugVars(): string
   {
     $vars = (array) $this->getData('debug');
     $str = '';

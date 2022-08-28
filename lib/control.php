@@ -9,7 +9,7 @@ class control
 
   public $hook = null;
   public $hookWasEmpty = false;
-  
+
   /**
    * Konstruktor
    * _________________________________________________________________
@@ -27,12 +27,12 @@ class control
       $this->hookWasEmpty = true;
     }
   }
-  
+
   /**
    * Execute a controller
    * _________________________________________________________________
    */
-  public function exec($obj, $method)
+  public function exec(object $obj, string $method): mixed
   {
     if (method_exists($obj, $method))
     {
@@ -59,7 +59,7 @@ class control
       exit($e->getMessage()); // last resort: uncatched error
     }
   }
-  
+
   /**
    * Index - is called when no hook is provided
    * _________________________________________________________________

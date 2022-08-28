@@ -15,7 +15,7 @@ class FeedsM extends cachedRequestM
    * fetch and parse the rss file
    * ________________________________________________________________
    */
-  public function fetchRSS($url)
+  public function fetchRSS(string $url): array
   {
     try
     {
@@ -50,7 +50,7 @@ class FeedsM extends cachedRequestM
    * extract the data
    * ________________________________________________________________
    */
-  public function extractData($feed)
+  public function extractData(array $feed): array
   {
     $type = null;
     $data = array();
@@ -143,7 +143,7 @@ class FeedsM extends cachedRequestM
    * fetch the rss version, or atom
    * ________________________________________________________________
    */
-  protected function getFeedVersion($feedA)
+  protected function getFeedVersion(array $feedA): string
   {
     $type = null;
 
@@ -181,7 +181,7 @@ class FeedsM extends cachedRequestM
    * is element an array and filled?
    * _______________________________________________________________
    */
-  protected function isFilledArray($el)
+  protected function isFilledArray(mixed $el): bool
   {
     if (is_countable($el) && (count($el) > 0))
     {
@@ -194,7 +194,7 @@ class FeedsM extends cachedRequestM
    * get element from rss item, fail safe
    * ________________________________________________________________
    */
-  protected function getPropFromItem($item, $propName)
+  protected function getPropFromItem(array $item, string $propName): mixed
   {
     if (isset($item[$propName]))
     {
@@ -210,7 +210,7 @@ class FeedsM extends cachedRequestM
    * but there is nothing we can do
    * ________________________________________________________________
    */
-  protected function atomGetLinkInItem($item)
+  protected function atomGetLinkInItem(array $item): string
   {
     if (isset($item['link']['@attributes']['href']))
     {
@@ -224,7 +224,7 @@ class FeedsM extends cachedRequestM
    * atom get feed logo
    * ________________________________________________________________
    */
-  protected function atomGetFeedLogo($feed)
+  protected function atomGetFeedLogo(array $feed): string
   {
     $logo = '';
 
@@ -246,7 +246,7 @@ class FeedsM extends cachedRequestM
    * rss get feed logo
    * ________________________________________________________________
    */
-  protected function rssGetFeedLogo($feed)
+  protected function rssGetFeedLogo(array $feed): string
   {
     if (isset($feed['channel']['image']))
     {
@@ -260,7 +260,7 @@ class FeedsM extends cachedRequestM
    * rss get article image
    * ________________________________________________________________
    */
-  protected function rssGetImageFromEnclosure($item)
+  protected function rssGetImageFromEnclosure(array $item): string
   {
     if (isset($item['enclosure']))
     {
@@ -282,7 +282,7 @@ class FeedsM extends cachedRequestM
    * get RSS1/RDF feed logo
    * ________________________________________________________________
    */
-  protected function rdfGetFeedLogo($feed)
+  protected function rdfGetFeedLogo(array $feed): string
   {
     if (isset($feed['channel']['image']))
     {
@@ -296,7 +296,7 @@ class FeedsM extends cachedRequestM
    * get RSS1/RDF image from MP tag
    * ________________________________________________________________
    */
-  protected function rdfGetImage($item)
+  protected function rdfGetImage(array $item): string
   {
     if (
         (isset($item['mp:image'])) &&
@@ -314,7 +314,7 @@ class FeedsM extends cachedRequestM
    * don't apply this to links!
    * ________________________________________________________________
    */
-  protected function cleanStringHTML($str)
+  protected function cleanStringHTML(string $str): string
   {
     if (is_array($str))
     {
@@ -328,7 +328,7 @@ class FeedsM extends cachedRequestM
    * clean a string and convert it to ISO encoding
    * ________________________________________________________________
    */
-  protected function cleanString($str)
+  protected function cleanString(string $str): string
   {
     if (is_array($str))
     {

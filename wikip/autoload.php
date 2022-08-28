@@ -4,7 +4,7 @@
  * Auto loader
  * ________________________________________________________________
  */
-spl_autoload_register(function($className)
+spl_autoload_register(function(string $className)
 {
   $fname = null;
   $ct = substr($className, -1);

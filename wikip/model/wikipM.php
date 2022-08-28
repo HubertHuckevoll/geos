@@ -19,7 +19,7 @@ class wikipM extends model
    * Konstruktor
    * _________________________________________________________________
    */
-  function __construct($loc = 'de')
+  public function __construct(string $loc = 'de')
   {
     $this->wC = $loc;
   }
@@ -28,7 +28,7 @@ class wikipM extends model
    * Search
    * _________________________________________________________________
    */
-  public function search($term)
+  public function search(string $term): array
   {
     $this->url = 'http://'.$this->wC.'.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch='.$this->sanitizeQuery($term);
     $data = $this->grabJson($this->url);
@@ -42,14 +42,13 @@ class wikipM extends model
     {
       throw new Exception('Nothing found or empty search key.');
     }
-
   }
 
   /**
    * Summary - currently unused
    * _________________________________________________________________
    */
-  public function summary($title)
+  public function summary(string $title): array
   {
     $this->url = 'http://'.$this->wC.'.wikipedia.org/api/rest_v1/page/summary/'.$this->sanitizeQuery($title);
     $data = $this->grabJson($this->url);
@@ -72,7 +71,7 @@ class wikipM extends model
    * but we regard the whole text as one entity so we don't care
    * _________________________________________________________________
    */
-  public function fulltext($title)
+  public function fulltext(string $title): string
   {
     // no "sanitizeQuery" here - we use a different API...
     $this->url = 'https://'.$this->wC.'.wikipedia.org/w/api.php?action=query&format=json&titles='.urlencode($title).'&prop=extracts&exlimit=max&explaintext';
@@ -154,12 +153,12 @@ class wikipM extends model
    * grab the "media" - just images at the moment
    * _________________________________________________________________
    */
-  public function media($title)
+  public function media(string $title): array
   {
-    $images = array();
+    $images = [];
     $this->url = 'https://'.$this->wC.'.wikipedia.org/api/rest_v1/page/media-list/'.$this->sanitizeQuery($title);
     $media = $this->grabJson($this->url);
-    $media = isset($media['items']) ? $media['items'] : array();
+    $media = isset($media['items']) ? $media['items'] : [];
 
     if (count($media) > 0)
     {
@@ -170,7 +169,7 @@ class wikipM extends model
           if (isset($item['srcset'][0]['src']))
           {
             $img = 'http:'.$item['srcset'][0]['src'];
-            $caption = $item['caption']['text'];
+            $caption = $item['caption']['text'] ?? $item['srcset'][0]['src'];
             if (
                  ($this->getImgExt($img) == 'jpg') ||
                  ($this->getImgExt($img) == 'png') ||
@@ -178,7 +177,7 @@ class wikipM extends model
                  ($this->getImgExt($img) == 'jpeg')
                )
             {
-              $images[] = array('url' => $img, 'caption' => $caption);
+              $images[] = ['url' => $img, 'caption' => $caption];
             }
           }
         }
@@ -193,7 +192,7 @@ class wikipM extends model
    * ISO encoding (json is ALWAYS UTF-8)
    * _________________________________________________________________
    */
-  public function grabJson($url)
+  public function grabJson(string $url): array
   {
     $json = parent::grabJson($url);
     array_walk_recursive($json, function(&$val, $key)
@@ -209,7 +208,7 @@ class wikipM extends model
    * the query term as UTF8 which is important for some APIs...
    * _________________________________________________________________
    */
-  private function sanitizeQuery($term)
+  private function sanitizeQuery(string $term): string
   {
     $term = str_replace(' ', '_', utf8_encode($term));
     return $term;
@@ -219,7 +218,7 @@ class wikipM extends model
    * get file extension lowercase
    * _________________________________________________________________
    */
-  private function getImgExt($url)
+  private function getImgExt(string $url): string
   {
     $ext = mb_strtolower(mb_substr($url, mb_strrpos($url, '.')+1));
     return $ext;
