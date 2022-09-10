@@ -3,40 +3,160 @@
 class html5V extends \baseV
 {
   /**
-   * draw page
-   * _____________________________________________________________________
+   * Categories
+   * _________________________________________________________________
    */
-  public function drawPage(string $viewFunc = ''): void
+  public function drawCategories()
   {
-    $erg  = '';
-    $erg .= '<!DOCTYPE html>';
-    $erg .= '<html>';
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
-    $erg .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    $erg .= '<link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">';
-    $erg .= '<link rel="stylesheet" href="https://newcss.net/new.min.css">';
+    $categories = $this->getData('categories');
+    $erg = '';
+    $i = 0;
 
-    // dark mode
-    if ($this->getData('uim') == 'd')
+    $erg .= $this->openPage('categories');
+    $erg .= '<ul>';
+    foreach($categories as $cat)
     {
-      $erg .= '<link rel="stylesheet" href="https://newcss.net/theme/night.css">';
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'feedsForCategory',
+                           'tableIdx' => $i],
+                           $cat);
+      $erg .= '</li>';
+      $i++;
+    }
+    $erg .= '</ul>';
+
+	  $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * Services
+   * _________________________________________________________________
+   */
+  public function drawFeedsForCategory()
+  {
+    $tableIdx = $this->getData('tableIdx');
+    $feeds = $this->getData('feeds');
+    $erg = '';
+
+    $erg .= $this->openPage('feedsForCategory');
+    $erg .= '<ul>';
+    for ($i = 0; $i < count($feeds); $i++)
+    {
+      $feed = $feeds[$i];
+      $erg .= '<li>';
+      $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $tableIdx, 'feedIdx' => $i],
+                          $feed['service']);
+      $erg .= '</li>';
+    }
+    $erg .= '</ul>';
+	  $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * articles
+   * _________________________________________________________________
+   */
+  public function drawArticlesForFeed()
+  {
+    $feed = $this->getData('feedData');
+    $articles = $feed['data'];
+    $tableIdx = $this->getData('tableIdx');
+    $feedIdx = $this->getData('feedIdx');
+    $feedURL = $this->getData('feedURL');
+    $erg = '';
+
+    $erg .= $this->openPage('articlesForFeed');
+    if ($this->stateParams['iU'] >= IMAGE_USE_MEDIUM)
+    {
+      if ($this->hasLogo($feed))
+      {
+        $logo = $feed['meta']['logo'];
+        $erg .= '<p><img src="'.$logo.'" style="max-width: 64px;" alt="'.$logo.'"><p>';
+      }
     }
 
-    $erg .= $this->debugVars();
-    $erg .= '</head>';
-    $erg .= '<body>';
+    if (is_countable($articles))
+    {
+      for ($i = 0; $i < count($articles); $i++)
+      {
+        $article = $articles[$i];
 
-    $erg .= '<header>';
-    $erg .= '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
-    $erg .= '<nav>'.$this->renderBreadCrumbs($viewFunc).'</nav>';
-    $erg .= '</header>';
+        $erg .= '<p>';
+        $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
+                            $article['title']);
+        $erg .= '</p>';
 
-    $erg .= $this->exec($viewFunc);
+        if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
+        {
+          if (isset($article['image']) && ($article['image'] != ''))
+          {
+            $erg .= '<p><img src="'.$article['image'].'" style="width: 128px;"><p>';
+          }
+        }
 
-    $erg .= '</body>';
-    $erg .= '</html>';
+        $erg .= '<p>';
+        $erg .= $article['description'];
+        $date = $article['date'];
+        if ($date != '')
+        {
+          $dt = new DateTime($date);
+          $erg .= '&nbsp;<i>('.$dt->format(DATE_RSS).')</i>';
+        }
+        $erg .= '</p>';
+
+        $erg .= ($i !== (count($articles)-1)) ? '<br>' : '';
+      }
+    }
+
+    $erg .= '<hr>';
+    $erg .= '<small>'.$feedURL.'</small>';
+	  $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * Preview
+   * _________________________________________________________________
+   */
+  public function drawPreviewArticle()
+  {
+    $article = $this->getData('article');
+    $headline = $this->getData('headline');
+    $articleFullLink = $this->getData('articleFullLink');
+    $erg = '';
+
+    $erg .= $this->openPage('previewArticle');
+    $erg .= '<h3>'.$headline.'</h3>';
+    if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
+    {
+      $erg .= '<p style="text-align: center;"><img src="'.$article['meta']['image'].'" style="max-width: 400px;"></p>';
+    }
+
+    foreach ($article['text'] as $node)
+    {
+      $tag = $node['tag'];
+      $str = $node['content'];
+
+      if (preg_match('/h[2-5]/', $tag))
+      {
+        $tag = 'h4';
+      }
+
+      $erg .= '<'.$tag.'>';
+      $erg .= $str;
+      $erg .= '</'.$tag.'>';
+    }
+
+    $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$articleFullLink.'</a>';
+	  $erg .= $this->closePage();
 
     header('Content-Type: text/html; charset=iso-8859-1');
     echo $erg;
@@ -46,7 +166,7 @@ class html5V extends \baseV
    * draw error page
    * _____________________________________________________________________
    */
-  public function drawErrorPage(Exception $e) : void
+  public function drawErrorPage(Exception $e): void
   {
     $erg  = '';
     $erg .= '<!DOCTYPE html>';
@@ -85,154 +205,48 @@ class html5V extends \baseV
   }
 
   /**
-   * Categories
-   * _________________________________________________________________
+   * open page
+   * _____________________________________________________________________
    */
-  public function categories()
+  protected function openPage(string $viewFunc = ''): string
   {
-    $categories = $this->getData('categories');
-    $erg = '';
-    $i = 0;
+    $erg  = '';
+    $erg .= '<!DOCTYPE html>';
+    $erg .= '<html>';
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
+    $erg .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    $erg .= '<link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">';
+    $erg .= '<link rel="stylesheet" href="https://newcss.net/new.min.css">';
 
-    $erg .= '<ul>';
-    foreach($categories as $cat)
+    // dark mode
+    if ($this->getData('uim') == 'd')
     {
-      $erg .= '<li>';
-      $erg .= $this->link(['hook' => 'feedsForCat',
-                           'tableIdx' => $i],
-                           $cat);
-      $erg .= '</li>';
-      $i++;
+      $erg .= '<link rel="stylesheet" href="https://newcss.net/theme/night.css">';
     }
-    $erg .= '</ul>';
+
+    $erg .= $this->debugVars();
+    $erg .= '</head>';
+    $erg .= '<body>';
+
+    $erg .= '<header>';
+    $erg .= '<h1>'.$this->getData('appName').$this->link(['hook' => 'setup'], '.').'</h1>';
+    $erg .= '<nav>'.$this->renderBreadCrumbs($viewFunc).'</nav>';
+    $erg .= '</header>';
 
     return $erg;
   }
 
   /**
-   * Services
-   * _________________________________________________________________
+   * close the page
+   * ________________________________________________________________
    */
-  public function feedsForCat()
+  protected function closePage(): string
   {
-    $tableIdx = $this->getData('tableIdx');
-    $feeds = $this->getData('feeds');
-    $category = $this->getData('category');
-    $erg = '';
-    $erg .= '<ul>';
-
-    for ($i = 0; $i < count($feeds); $i++)
-    {
-      $feed = $feeds[$i];
-      $erg .= '<li>';
-      $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $tableIdx, 'feedIdx' => $i],
-                          $feed['service']);
-      $erg .= '</li>';
-    }
-    $erg .= '</ul>';
-
-    return $erg;
-  }
-
-  /**
-   * articles
-   * _________________________________________________________________
-   */
-  public function articlesForFeed()
-  {
-    $feed = $this->getData('feedData');
-    $articles = $feed['data'];
-    $tableIdx = $this->getData('tableIdx');
-    $feedIdx = $this->getData('feedIdx');
-    $feedURL = $this->getData('feedURL');
-    $img = '';
-    $erg = '';
-
-    if ($this->stateParams['iU'] >= IMAGE_USE_MEDIUM)
-    {
-      if ($this->hasLogo($feed))
-      {
-        $logo = $feed['meta']['logo'];
-        $erg .= '<p><img src="'.$logo.'" style="max-width: 64px;" alt="'.$logo.'"><p>';
-      }
-    }
-
-    if (is_countable($articles))
-    {
-      for ($i = 0; $i < count($articles); $i++)
-      {
-        $article = $articles[$i];
-
-        $erg .= '<p>';
-        $erg .= $this->link(['hook' => 'previewArticle', 'tableIdx' => $tableIdx, 'feedIdx' => $feedIdx, 'articleIdx' => $i],
-                            $article['title']);
-        $erg .= '</p>';
-
-        if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
-        {
-          if (isset($article['image']))
-          {
-            $erg .= '<p><img src="'.$article['image'].'" style="width: 128px;"><p>';
-          }
-        }
-
-        $erg .= '<p>';
-        $erg .= $article['description'];
-        $date = $article['date'];
-        if ($date != '')
-        {
-          $dt = new DateTime($date);
-          $erg .= '&nbsp;<i>('.$dt->format(DATE_RSS).')</i>';
-        }
-        $erg .= '</p>';
-
-        $erg .= ($i !== (count($articles)-1)) ? '<br>' : '';
-      }
-    }
-
-    $erg .= '<hr>';
-    $erg .= '<small>'.$feedURL.'</small>';
-
-    return $erg;
-  }
-
-  /**
-   * Preview
-   * _________________________________________________________________
-   */
-  public function previewArticle()
-  {
-    $article = $this->getData('article');
-    $tableIdx = $this->getData('tableIdx');
-    $feedIdx = $this->getData('feedIdx');
-    $headline = $this->getData('headline');
-    $articleFullLink = $this->getData('articleFullLink');
-
-    $erg = '';
-
-    $erg .= '<h3>'.$headline.'</h3>';
-
-    if ($this->stateParams['iU'] >= IMAGE_USE_SOME)
-    {
-      $erg .= '<p style="text-align: center;"><img src="'.$article['meta']['image'].'" style="max-width: 400px;"></p>';
-    }
-
-    foreach ($article['text'] as $node)
-    {
-      $tag = $node['tag'];
-      $str = $node['content'];
-
-      if (preg_match('/h[2-5]/', $tag))
-      {
-        $tag = 'h4';
-      }
-
-      $erg .= '<'.$tag.'>';
-      $erg .= $str;
-      $erg .= '</'.$tag.'>';
-    }
-
-    $erg .= '<a href="'.$articleFullLink.'" target="_blank">'.$articleFullLink.'</a>';
+    $erg  = '';
+    $erg .= '</body>';
+    $erg .= '</html>';
 
     return $erg;
   }

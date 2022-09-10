@@ -132,7 +132,7 @@ class feed extends control
       $this->view->setData('headline', 'Categories');
       $this->view->setData('categories', $categories);
 
-      $this->view->drawPage('categories');
+      $this->view->drawCategories();
     }
     catch(Exception $e)
     {
@@ -145,7 +145,7 @@ class feed extends control
    * feeds within one category of the table
    * _________________________________________________________________
    */
-  public function feedsForCat()
+  public function feedsForCategory()
   {
     try
     {
@@ -163,7 +163,7 @@ class feed extends control
       $this->view->setData('category', $category);
       $this->view->setData('feeds', $feeds);
 
-      $this->view->drawPage('feedsForCat');
+      $this->view->drawFeedsForCategory();
     }
     catch(Exception $e)
     {
@@ -203,7 +203,7 @@ class feed extends control
       $this->view->setData('feedName', $feedName);
       $this->view->setData('feedData', $feedData);
 
-      $this->view->drawPage('articlesForFeed');
+      $this->view->drawArticlesForFeed();
     }
     catch(Exception $e)
     {
@@ -252,7 +252,7 @@ class feed extends control
       $this->view->setData('feedName', $feedName);
       $this->view->setData('articleFullLink', $articleFullLink);
 
-      $this->view->drawPage('previewArticle');
+      $this->view->drawPreviewArticle();
     }
     catch(Exception $e)
     {

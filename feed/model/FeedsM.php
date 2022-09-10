@@ -228,12 +228,12 @@ class FeedsM extends cachedRequestM
   {
     $logo = '';
 
-    if ((string) $feed['icon'] != '')
+    if (isset($feed['icon']))
     {
       $logo = (string) $feed['icon'];
     }
 
-    if (($logo == '') && ($feed['logo'] != ''))
+    if (($logo == '') && (isset($feed['logo'])))
     {
       $logo = (string) $feed['logo'];
     }
@@ -314,11 +314,14 @@ class FeedsM extends cachedRequestM
    * don't apply this to links!
    * ________________________________________________________________
    */
-  protected function cleanStringHTML(string $str): string
+  protected function cleanStringHTML(string|array $str): string
   {
+
     if (is_array($str))
     {
-      $str = implode(' ', $str);
+      $nStr = '';
+      $this->implodeRecursive($str, $nStr);
+      $str = $nStr;
     }
 
     return $this->Utf8ToIsoHtml(trim($this->stripTags($str)));
@@ -328,14 +331,35 @@ class FeedsM extends cachedRequestM
    * clean a string and convert it to ISO encoding
    * ________________________________________________________________
    */
-  protected function cleanString(string $str): string
+  protected function cleanString(string|array $str): string
   {
     if (is_array($str))
     {
-      $str = implode(' ', $str);
+      $nStr = '';
+      $this->implodeRecursive($str, $nStr);
+      $str = $nStr;
     }
 
-    return $this->Utf8ToIso(trim($this->stripTags((string) $str)));
+    return $this->Utf8ToIso(trim($this->stripTags($str)));
+  }
+
+  /**
+   * recursively transform array of arrays into string
+   * ________________________________________________________________
+   */
+  protected function implodeRecursive($arr, &$toStr)
+  {
+    foreach($arr as $a)
+    {
+      if (is_array($a))
+      {
+        $this->implodeRecursive($a, $toStr);
+      }
+      else
+      {
+        $toStr = $toStr.' '.$a;
+      }
+    }
   }
 
 }

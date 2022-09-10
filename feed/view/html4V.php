@@ -2,96 +2,17 @@
 
 class html4V extends \baseV
 {
-
-  /**
-   * draw page
-   * _____________________________________________________________________
-   */
-  public function drawPage(string $viewFunc = ''): void
-  {
-    $erg  = '';
-    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
-    $erg .= '<html>';
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
-    $erg .= $this->debugVars();
-    $erg .= '</head>';
-
-    $erg .= $this->exec($viewFunc);
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
-  /**
-   * draw error page
-   * _____________________________________________________________________
-   */
-  public function drawErrorPage(Exception $e) : void
-  {
-    $erg  = '';
-    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
-    $erg .= '<html>';
-    $erg .= '<head>';
-    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
-    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
-    $erg .= $this->debugVars();
-    $erg .= '</head>';
-    $erg .= '<body>';
-
-    $erg .= '<h3>Fehler:</h3>';
-    $erg .= '<p>'.$e->getMessage().'</p>';
-    $erg .= '</body>';
-
-    $erg .= '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
-  /**
-   * frameset
-   * _____________________________________________________________________
-   */
-  public function drawFrameset()
-  {
-    $erg  = '';
-    $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">'.
-              '<html>'.
-              '<head>'.
-                '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').'</title>'.
-                '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'.
-              '</head>'.
-              '<frameset rows="11%,*" frameborder="0" border="0" framespacing="0">'.
-                '<frame name="top" src="'.$this->href(['hook' => 'categories']).'" scrolling="no">'.
-                '<frameset cols="*,600,*" frameborder="0" border="0" framespacing="0">'.
-                  '<frame name="left"   scrolling="auto" src="'.$this->href(['hook' => 'feedsForCat', 'tableIdx' => 0]).'">'.
-                  '<frame name="right"  scrolling="auto">'.
-                  '<frame name="middle" scrolling="auto">'.
-                '</frameset>'.
-                '<noframes>'.
-                  '<p>Your browser does not support frames. Use the non-frame version of this page.</p>'.
-                '</noframes>'.
-              '</frameset>'.
-            '</html>';
-
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
-  }
-
   /**
    * Draw top frame
    * _________________________________________________________________
    */
-  public function categories()
+  public function drawCategories()
   {
     $categories = $this->getData('categories');
     $erg = '';
     $i = 0;
 
+    $erg .= $this->openPage();
     if ($this->getData('uim') == 'l')
     { // light mode
       $erg .= '<body bgcolor="#000080" text="#FFFFFF" link="#FFFFFF" vlink="FFFFFF">';
@@ -113,7 +34,7 @@ class html4V extends \baseV
 
     foreach ($categories as $cat)
     {
-      $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $i],
+      $erg .= $this->link(['hook' => 'feedsForCategory', 'tableIdx' => $i],
                           $cat,
                           ['target' => 'left']);
 
@@ -130,15 +51,17 @@ class html4V extends \baseV
             '</tr>'.
             '</table>'.
             '</body>';
+    $erg .= $this->closePage();
 
-    return $erg;
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Services
    * _________________________________________________________________
    */
-  public function feedsForCat()
+  public function drawFeedsForCategory()
   {
     $tableIdx = $this->getData('tableIdx');
     $feeds = $this->getData('feeds');
@@ -146,6 +69,7 @@ class html4V extends \baseV
     $headline = $this->getData('headline');
     $erg = '';
 
+    $erg .= $this->openPage();
     if ($this->getData('uim') == 'l')
     { // light mode
       $erg .= '<body bgcolor="#FFFFFF" text="#000000" link="#000080" vlink="#000080">';
@@ -170,24 +94,26 @@ class html4V extends \baseV
 
     $erg .= '</font>';
     $erg .= '</body>';
+	  $erg .= $this->closePage();
 
-    return $erg;
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * articles
    * _________________________________________________________________
    */
-  public function articlesForFeed()
+  public function drawArticlesForFeed()
   {
     $feed = $this->getData('feedData');
     $articles = $feed['data'];
     $tableIdx = $this->getData('tableIdx');
     $feedIdx = $this->getData('feedIdx');
-    $category = $this->getData('category');
     $feedName = $this->getData('feedName');
     $erg = '';
 
+    $erg .= $this->openPage();
     if ($this->getData('uim') == 'l')
     { // light mode
       $erg .= '<body bgcolor="#FFFFFF" text="#000000" link="#000080" vlink="#000080">';
@@ -221,7 +147,7 @@ class html4V extends \baseV
 
         if ($this->stateParams['iU'] >= IMAGE_USE_ALL)
         {
-          if (isset($article['image']))
+          if (isset($article['image']) && ($article['image'] != ''))
           {
             $erg .= '<center><img src="'.$this->imageProxy($article['image'], 128).'"></center>';
           }
@@ -246,27 +172,24 @@ class html4V extends \baseV
 
     $erg .= '</font>';
     $erg .= '</body>';
+	  $erg .= $this->closePage();
 
-    return $erg;
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
   }
 
   /**
    * Preview
    * _________________________________________________________________
    */
-  public function previewArticle()
+  public function drawPreviewArticle()
   {
     $article = $this->getData('article');
-    $category = $this->getData('category');
-    $tableIdx = $this->getData('tableIdx');
-    $feedIdx = $this->getData('feedIdx');
-    $feedName = $this->getData('feedName');
     $headline = $this->getData('headline');
     $articleFullLink = $this->getData('articleFullLink');
-
     $erg = '';
 
-
+    $erg .= $this->openPage();
     if ($this->getData('uim') == 'l')
     { // light mode
       $erg .= '<body bgcolor="#FFFFFF" text="#000000" link="#000080" vlink="#000080">';
@@ -309,6 +232,95 @@ class html4V extends \baseV
             '</tr>'.
             '</table>'.
             '</body>';
+
+    $erg .= $this->closePage();
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * frameset
+   * _____________________________________________________________________
+   */
+  public function drawFrameset()
+  {
+    $erg  = '';
+    $erg .= '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">'.
+              '<html>'.
+              '<head>'.
+                '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').'</title>'.
+                '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">'.
+              '</head>'.
+              '<frameset rows="11%,*" frameborder="0" border="0" framespacing="0">'.
+                '<frame name="top" src="'.$this->href(['hook' => 'categories']).'" scrolling="no">'.
+                '<frameset cols="*,600,*" frameborder="0" border="0" framespacing="0">'.
+                  '<frame name="left"   scrolling="auto" src="'.$this->href(['hook' => 'feedsForCategory', 'tableIdx' => 0]).'">'.
+                  '<frame name="right"  scrolling="auto">'.
+                  '<frame name="middle" scrolling="auto">'.
+                '</frameset>'.
+                '<noframes>'.
+                  '<p>Your browser does not support frames. Use the non-frame version of this page.</p>'.
+                '</noframes>'.
+              '</frameset>'.
+            '</html>';
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * draw error page
+   * _____________________________________________________________________
+   */
+  public function drawErrorPage(Exception $e) : void
+  {
+    $erg  = '';
+    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
+    $erg .= '<html>';
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').'/'.$this->getData('tsvName').' - '.$this->getData('headline').'</title>';
+    $erg .= $this->debugVars();
+    $erg .= '</head>';
+    $erg .= '<body>';
+
+    $erg .= '<h3>Fehler:</h3>';
+    $erg .= '<p>'.$e->getMessage().'</p>';
+    $erg .= '</body>';
+
+    $erg .= '</html>';
+
+    header('Content-Type: text/html; charset=iso-8859-1');
+    echo $erg;
+  }
+
+  /**
+   * open page
+   * _____________________________________________________________________
+   */
+  protected function openPage(): string
+  {
+    $erg  = '';
+    $erg .= '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">';
+    $erg .= '<html>';
+    $erg .= '<head>';
+    $erg .= '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">';
+    $erg .= '<title>'.$this->getData('appName').': '.$this->getData('headline').' ('.$this->getData('tsvName').')</title>';
+    $erg .= $this->debugVars();
+    $erg .= '</head>';
+
+    return $erg;
+  }
+
+  /**
+   * close page
+   * ________________________________________________________________
+   */
+  protected function closePage(): string
+  {
+    $erg  = '';
+    $erg .= '</html>';
 
     return $erg;
   }

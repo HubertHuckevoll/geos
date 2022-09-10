@@ -7,14 +7,10 @@ class baseV extends \view
    * render bread crumbs
    * _________________________________________________________________
    */
-  public function renderBreadCrumbs($viewFunc)
+  protected function renderBreadCrumbs(string $viewFunc): string
   {
     $category = $this->getData('category');
-    $tableIdx = $this->getData('tableIdx');
-
-    $feedIdx = $this->getData('feedIdx');
     $feedName = $this->getData('feedName');
-
     $erg = '';
 
     switch ($viewFunc)
@@ -23,7 +19,7 @@ class baseV extends \view
         $erg .= '<b>Categories</b>';
       break;
 
-      case 'feedsForCat':
+      case 'feedsForCategory':
         $erg .= $this->link(['hook' => 'index'], 'Categories');
         $erg .= '&nbsp;&gt;&nbsp;';
         $erg .= '<b>'.$category.'</b>';
@@ -32,7 +28,7 @@ class baseV extends \view
       case 'articlesForFeed':
         $erg .= $this->link(['hook' => 'index'], 'Categories');
         $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $this->getData('tableIdx')],
+        $erg .= $this->link(['hook' => 'feedsForCategory', 'tableIdx' => $this->getData('tableIdx')],
                             $category);
         $erg .= '&nbsp;&gt;&nbsp;';
         $erg .= '<b>'.$feedName.'</b>';
@@ -41,7 +37,7 @@ class baseV extends \view
       case 'previewArticle':
         $erg .= $this->link(['hook' => 'index'], 'Categories');
         $erg .= '&nbsp;&gt;&nbsp;';
-        $erg .= $this->link(['hook' => 'feedsForCat', 'tableIdx' => $this->getData('tableIdx')],
+        $erg .= $this->link(['hook' => 'feedsForCategory', 'tableIdx' => $this->getData('tableIdx')],
                             $category);
         $erg .= '&nbsp;&gt;&nbsp;';
         $erg .= $this->link(['hook' => 'articlesForFeed', 'tableIdx' => $this->getData('tableIdx'), 'feedIdx' => $this->getData('feedIdx')],
@@ -58,7 +54,7 @@ class baseV extends \view
    */
   protected function hasLogo($feed)
   {
-    if ($feed['meta']['logo'] != '')
+    if (isset($feed['meta']['logo']) && ($feed['meta']['logo'] != ''))
     {
       $handle = @fopen($feed['meta']['logo'], 'r');
       if ($handle !== false)
