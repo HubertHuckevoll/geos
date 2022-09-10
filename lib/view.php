@@ -70,37 +70,6 @@ class view
   }
 
   /**
-   * Execute a partial view function
-   * returns a html fragment
-   * call this function from your drawPage function
-   * and prepend and append the rest of the HTML there
-   * _________________________________________________________________
-   */
-  public function exec(string $viewFunc): string
-  {
-    if (method_exists($this, $viewFunc))
-    {
-      return $this->$viewFunc();
-    }
-    else
-    {
-      throw new Exception('Unknown function call "'.$viewFunc.'" for object "'.get_class($this).'".');
-    }
-  }
-
-  /**
-   * output page - overwrite me!
-   * prepend and append boilerplate html
-   * _________________________________________________________________
-   */
-  public function drawPage(string $viewFunc = ''): void
-  {
-    // html / head / body / sidebar...
-    echo $this->exec($viewFunc);
-    // close everything
-  }
-
-  /**
    * error version for single class views
    * ________________________________________________________________
    */

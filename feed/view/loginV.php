@@ -1,12 +1,12 @@
 <?php
 
-class loginV extends \view
+class loginV extends \baseV
 {
   /**
    * draw page
    * _____________________________________________________________________
    */
-  public function drawPage(string $viewFunc = ''): void
+  public function drawPage(): void
   {
     $h2sel = ($this->stateParams['ui'] == 'html2V') ? ' selected' : '';
     $h3sel = ($this->stateParams['ui'] == 'html3V') ? ' selected' : '';
@@ -76,8 +76,7 @@ class loginV extends \view
     $erg .= '</body>';
     $erg .= '</html>';
 
-    header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
 }

@@ -66,6 +66,16 @@ class baseV extends \view
     return false;
   }
 
+  /**
+   * send output ISO encoded
+   * ________________________________________________________________
+   */
+  protected function send($str)
+  {
+	  header('Content-Type: text/html; charset=iso-8859-1');
+    echo $str;
+  }
+
 }
 
 ?>

@@ -6,7 +6,7 @@ class html2V extends \baseV
    * Categories
    * _________________________________________________________________
    */
-  public function drawCategories()
+  public function drawCategories(): void
   {
     $categories = $this->getData('categories');
     $erg = '';
@@ -30,15 +30,14 @@ class html2V extends \baseV
     $erg .= '</ul>';
     $erg .= $this->closePage();
 
-	  header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
   /**
    * Services
    * _________________________________________________________________
    */
-  public function drawFeedsForCategory()
+  public function drawFeedsForCategory(): void
   {
     $tableIdx = $this->getData('tableIdx');
     $feeds = $this->getData('feeds');
@@ -61,15 +60,14 @@ class html2V extends \baseV
     $erg .= '</ul>';
     $erg .= $this->closePage();
 
-	  header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
   /**
    * articles
    * _________________________________________________________________
    */
-  public function drawArticlesForFeed()
+  public function drawArticlesForFeed(): void
   {
     $feed = $this->getData('feedData');
     $articles = $feed['data'];
@@ -130,15 +128,14 @@ class html2V extends \baseV
     $erg .= '<small>'.$feedURL.'</small>';
     $erg .= $this->closePage();
 
-	  header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
   /**
    * Preview
    * _________________________________________________________________
    */
-  public function drawPreviewArticle()
+  public function drawPreviewArticle(): void
   {
     $article = $this->getData('article');
     $headline = $this->getData('headline');
@@ -176,15 +173,14 @@ class html2V extends \baseV
     $erg .= '<small><a href="'.$articleFullLink.'" target="_blank">'.wordwrap($articleFullLink, 75, "\r", true).'</a></small>';
     $erg .= $this->closePage();
 
-	  header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
   /**
    * draw error page
    * _____________________________________________________________________
    */
-  public function drawErrorPage(Exception $e) : void
+  public function drawErrorPage(Exception $e): void
   {
     $erg  = '';
     $erg .= '<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">';
@@ -213,8 +209,7 @@ class html2V extends \baseV
     $erg .= '</body>';
     $erg .= '</html>';
 
-	  header('Content-Type: text/html; charset=iso-8859-1');
-    echo $erg;
+    $this->send($erg);
   }
 
   /**
