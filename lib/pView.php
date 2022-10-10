@@ -70,6 +70,19 @@ class pView
   }
 
   /**
+   * draw the page (everything between openPage() and closePage())
+   * ________________________________________________________________
+   */
+  public function drawPage()
+  {
+    $str  = '';
+    $str .= $this->openPage();
+    $str .= $this->closePage();
+
+    echo $str;
+  }
+
+  /**
    * error version for single class views
    * ________________________________________________________________
    */
