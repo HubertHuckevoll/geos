@@ -1,6 +1,6 @@
 <?php
 
-class html2V extends \view
+class html2V extends pView
 {
 
   /**

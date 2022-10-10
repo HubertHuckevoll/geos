@@ -1,6 +1,6 @@
 <?php
 
-class html4V extends \view
+class html4V extends pView
 {
 
   /**

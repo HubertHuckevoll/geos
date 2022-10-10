@@ -1,11 +1,5 @@
 <?php
 
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/helpers.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/logger.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/control.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/model.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/view.php');
-
 /**
  * wikip model
  * ________________________________________________________________

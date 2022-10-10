@@ -1,10 +1,11 @@
 <?php
-
+/*
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/helpers.php');
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/logger.php');
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/control.php');
 require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/model.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/view.php');
+require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/pView.php');
+*/
 require_once('autoload.php');
 
 /**
