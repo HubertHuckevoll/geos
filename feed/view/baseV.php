@@ -1,6 +1,6 @@
 <?php
 
-class baseV extends \view
+class baseV extends pView
 {
 
   /**

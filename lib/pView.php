@@ -1,6 +1,6 @@
 <?php
 
-class view
+class pView
 {
   public $stateParams = [];
   public $data = [];
@@ -141,6 +141,27 @@ class view
     $img = 'http://'.$_SERVER['HTTP_HOST'].'/geos/tools/2gif.php?file='.urlencode($img).'&width='.(string) $newWidth;
     return $img;
   }
+
+  /**
+   * open page
+   * _____________________________________________________________________
+   */
+  protected function openPage(): string
+  {
+    $erg  = '';
+    return $erg;
+  }
+
+  /**
+   * close page
+   * ________________________________________________________________
+   */
+  protected function closePage(): string
+  {
+    $erg  = '';
+    return $erg;
+  }
+
 }
 
 ?>

@@ -1,6 +1,6 @@
 <?php
 
-class html3V extends \baseV
+class html3V extends baseV
 {
   /**
    * Categories

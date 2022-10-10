@@ -1,6 +1,6 @@
 <?php
 
-class html5V extends \baseV
+class html5V extends baseV
 {
   /**
    * Categories

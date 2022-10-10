@@ -1,6 +1,6 @@
 <?php
 
-class html4V extends \baseV
+class html4V extends baseV
 {
   /**
    * Draw top frame

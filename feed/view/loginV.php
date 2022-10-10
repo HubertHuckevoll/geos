@@ -1,6 +1,6 @@
 <?php
 
-class loginV extends \baseV
+class loginV extends baseV
 {
   /**
    * draw page

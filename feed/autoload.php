@@ -12,26 +12,21 @@ spl_autoload_register(function($className)
   switch($ct)
   {
     case 'V':
-
-      if ($className == 'loginV')
-      {
-        $fname = './view/'.$className.'.php';
-      }
-      else
-      {
-        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/view/'.$className.'.php';
-      }
-
+      $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/view/'.$className.'.php';
     break;
 
     case 'M':
       $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/feed/model/'.$className.'.php';
-
-      if (!file_exists($fname))
-      {
-        $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/lib/'.$className.'.php';
-      }
     break;
+
+    default:
+      $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/lib/'.$className.'.php';
+    break;
+  }
+
+  if (!file_exists($fname))
+  {
+    $fname = $_SERVER["DOCUMENT_ROOT"].'/geos/lib/'.$className.'.php';
   }
 
   if (file_exists($fname))
@@ -42,7 +37,6 @@ spl_autoload_register(function($className)
   {
     die('Couldn\'t autoload class "'.$className.'" from "'.$fname.'"');
   }
-
 
 });
 

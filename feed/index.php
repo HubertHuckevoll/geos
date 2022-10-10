@@ -1,14 +1,5 @@
 <?php
 
-// Helpers
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/helpers.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/logger.php');
-
-// Basics
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/control.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/model.php');
-require_once($_SERVER["DOCUMENT_ROOT"].'/geos/lib/view.php');
-
 // Autoloader
 require_once('autoload.php');
 
